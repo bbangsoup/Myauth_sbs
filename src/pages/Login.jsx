@@ -179,6 +179,8 @@ function Login() {
    * [1단계] 사용자가 "카카오 로그인" 버튼 클릭
    *   ↓
    * [2단계] 이 함수가 실행되어 백엔드의 /auth/kakao/login으로 전체 페이지 리다이렉트
+   *   - redirectUrl 파라미터로 프론트엔드 콜백 URL 전달 (http://localhost:5173/oauth/callback)
+   *   - 백엔드는 이 URL을 세션에 저장 (카카오 OAuth 플로우 완료 후 사용)
    *   - Vite proxy가 '/api/auth/kakao/login' → 'http://localhost:9080/auth/kakao/login'으로 전달
    *   - 브라우저 주소창이 백엔드 URL로 변경됨
    *   ↓
@@ -191,7 +193,7 @@ function Login() {
    * [5단계] 카카오가 백엔드의 /auth/kakao/callback으로 리다이렉트 (Authorization Code 포함)
    *   - 이 부분은 백엔드에서 처리 (프론트엔드는 관여하지 않음)
    *   ↓
-   * [6단계] 백엔드가 처리 완료 후 프론트엔드로 리다이렉트
+   * [6단계] 백엔드가 처리 완료 후 세션에 저장된 redirectUrl로 프론트엔드 리다이렉트
    *   - 성공: http://localhost:5173/oauth/callback?status=success
    *   - 실패: http://localhost:5173/oauth/callback?error=에러메시지
    *   ↓
@@ -201,13 +203,22 @@ function Login() {
    * - window.location.href는 전체 페이지 리다이렉트를 수행 (SPA가 아닌 전통적인 페이지 이동)
    * - 이 과정에서 React 상태는 모두 초기화됨
    * - Vite의 proxy 설정 덕분에 '/api'로 시작하는 요청이 백엔드로 전달됨
+   * - redirectUrl은 URL 인코딩하여 쿼리 파라미터로 전달
    */
   const handleKakaoLogin = () => {
+    // 카카오 OAuth 플로우 완료 후 돌아올 프론트엔드 콜백 URL
+    const callbackUrl = `${window.location.origin}/oauth/callback`;
+
+    // URL 인코딩하여 쿼리 파라미터로 전달
+    const encodedCallbackUrl = encodeURIComponent(callbackUrl);
+
     // 백엔드의 카카오 로그인 시작 엔드포인트로 전체 페이지 리다이렉트
-    // - 브라우저가 http://localhost:9080/auth/kakao/login 으로 이동
+    // - redirectUrl 파라미터: 백엔드가 OAuth 플로우 완료 후 리다이렉트할 프론트엔드 URL
+    // - 백엔드는 이 URL을 세션에 저장했다가 카카오 콜백 처리 후 사용
+    // - 브라우저가 http://localhost:9080/auth/kakao/login?redirectUrl=... 으로 이동
     // - 백엔드는 이 요청을 받아 카카오 인증 서버로 다시 리다이렉트
     // - 현재 페이지(Login.jsx)는 언마운트되고 모든 상태가 사라짐
-    window.location.href = '/api/auth/kakao/login';
+    window.location.href = `/api/auth/kakao/login?redirectUrl=${encodedCallbackUrl}`;
   }
 
   return (
