@@ -210,36 +210,69 @@ function Profile() {
    * uploadImage 함수
    *
    * 이미지 파일을 서버에 업로드하고 URL을 반환하는 함수입니다.
-   * 실제 구현 시 이미지 업로드 API 엔드포인트에 맞게 수정이 필요합니다.
+   *
+   * 백엔드 API: POST /api/upload/image
+   * 요청: multipart/form-data (file 필드)
+   * 응답 예시:
+   * {
+   *   "message": "이미지가 성공적으로 업로드되었습니다.",
+   *   "data": {
+   *     "imageUrl": "http://16.184.53.118:8080/uploads/abc-123.jpg",
+   *     "fileName": "abc-123.jpg",
+   *     "originalFileName": "image.jpg",
+   *     "fileSize": 245678,
+   *     "contentType": "image/jpeg"
+   *   }
+   * }
    *
    * @param {File} file - 업로드할 이미지 파일
-   * @param {string} type - 이미지 타입 ('profile' 또는 'background')
+   * @param {string} type - 이미지 타입 ('profile' 또는 'background') - 로깅용
    * @returns {Promise<string|null>} - 업로드된 이미지 URL 또는 null
    */
   const uploadImage = async (file, type) => {
     if (!file) return null;
 
+    // FormData 객체 생성 (multipart/form-data 전송용)
     const uploadFormData = new FormData();
+    // 백엔드에서 'file' 필드명으로 받음
     uploadFormData.append('file', file);
-    uploadFormData.append('type', type);
 
     try {
+      console.log(`=== ${type} 이미지 업로드 시작 ===`);
+      console.log('파일명:', file.name);
+      console.log('파일 크기:', file.size, 'bytes');
+      console.log('파일 타입:', file.type);
+
       // 이미지 업로드 API 호출
-      // TODO: 실제 이미지 업로드 API 엔드포인트로 변경 필요
       const response = await axios.post('/api/upload/image', uploadFormData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          // multipart/form-data는 axios가 자동으로 Content-Type과 boundary를 설정
           'Authorization': `Bearer ${accessToken}`
         },
         withCredentials: true
       });
 
-      if (response.data.success) {
-        return response.data.data.url; // 업로드된 이미지 URL 반환
+      console.log('=== 업로드 응답 ===');
+      console.log('응답 데이터:', response.data);
+
+      // 백엔드 응답에서 imageUrl 추출
+      // 응답 형식: { message: "...", data: { imageUrl: "...", ... } }
+      if (response.data && response.data.data && response.data.data.imageUrl) {
+        const imageUrl = response.data.data.imageUrl;
+        console.log(`${type} 이미지 업로드 성공:`, imageUrl);
+        return imageUrl;
       }
+
+      // 응답 형식이 예상과 다른 경우
+      console.error(`${type} 이미지 업로드 응답 형식 오류:`, response.data);
       return null;
     } catch (error) {
       console.error(`${type} 이미지 업로드 실패:`, error);
+      // 에러 응답 상세 정보 출력
+      if (error.response) {
+        console.error('에러 상태:', error.response.status);
+        console.error('에러 데이터:', error.response.data);
+      }
       return null;
     }
   };
