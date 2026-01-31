@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import ProfileImageSection from '../components/ProfileImageSection';
 import { useAuth } from '../hooks/useAuth';
 import { useProfileForm } from '../hooks/useProfileForm';
+import { FORM_CONFIG } from '../config';
 import './Profile.css';
 
 /**
@@ -86,7 +87,7 @@ function Profile() {
         <Footer />
       </>
     );
-  }
+  };
 
   // ==========================================
   // 메인 렌더링
@@ -150,7 +151,7 @@ function Profile() {
               placeholder="010-1234-5678"
             />
 
-            {/* 국가 선택 */}
+            {/* 국가 선택 (config에서 국가 목록 가져옴) */}
             <div className="form-group">
               <label htmlFor="country">국가</label>
               <select
@@ -159,11 +160,11 @@ function Profile() {
                 value={formData.country}
                 onChange={handleChange}
               >
-                <option value="1">대한민국</option>
-                <option value="2">미국</option>
-                <option value="3">일본</option>
-                <option value="4">중국</option>
-                <option value="5">기타</option>
+                {FORM_CONFIG.countries.map((country) => (
+                  <option key={country.value} value={country.value}>
+                    {country.label}
+                  </option>
+                ))}
               </select>
             </div>
 

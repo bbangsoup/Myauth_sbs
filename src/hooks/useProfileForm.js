@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import {
+  API_CONFIG,
+  UPLOAD_CONFIG,
+  FORM_CONFIG,
+  VALIDATION_MESSAGES
+} from '../config';
 
 /**
  * useProfileForm 커스텀 훅
@@ -20,20 +26,20 @@ export function useProfileForm(accessToken) {
 
   // 폼 데이터 (백엔드 UserProfileUpdateRequest DTO에 맞춤)
   const [formData, setFormData] = useState({
-    name: '',           // 닉네임
-    lastName: '',       // 성
-    firstName: '',      // 이름
-    phoneNumber: '',    // 전화번호
-    country: '1',       // 국가 코드 (기본값: 한국)
-    address1: '',       // 주소1
-    address2: '',       // 주소2
-    birth: ''           // 생년월일
+    name: '',                              // 닉네임
+    lastName: '',                          // 성
+    firstName: '',                         // 이름
+    phoneNumber: '',                       // 전화번호
+    country: FORM_CONFIG.defaultCountry,   // 국가 코드 (설정에서 기본값 가져옴)
+    address1: '',                          // 주소1
+    address2: '',                          // 주소2
+    birth: ''                              // 생년월일
   });
 
   // 이미지 관련 상태
-  const [previewImage, setPreviewImage] = useState(null);         // 프로필 이미지 미리보기 URL
+  const [previewImage, setPreviewImage] = useState(null);           // 프로필 이미지 미리보기 URL
   const [previewBackground, setPreviewBackground] = useState(null); // 배경 이미지 미리보기 URL
-  const [selectedFile, setSelectedFile] = useState(null);          // 선택된 프로필 이미지 파일
+  const [selectedFile, setSelectedFile] = useState(null);           // 선택된 프로필 이미지 파일
   const [selectedBackgroundFile, setSelectedBackgroundFile] = useState(null); // 선택된 배경 이미지 파일
 
   // UI 상태
@@ -52,7 +58,9 @@ export function useProfileForm(accessToken) {
       }
 
       try {
-        const response = await axios.get('/api/user/profile', {
+        // API 엔드포인트를 config에서 가져옴
+        const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.profile}`;
+        const response = await axios.get(url, {
           headers: { 'Authorization': `Bearer ${accessToken}` },
           withCredentials: true
         });
@@ -70,7 +78,7 @@ export function useProfileForm(accessToken) {
             lastName: data.lastName || '',
             firstName: data.firstName || '',
             phoneNumber: data.phoneNumber || '',
-            country: data.country?.toString() || '1',
+            country: data.country?.toString() || FORM_CONFIG.defaultCountry,
             address1: data.address1 || '',
             address2: data.address2 || '',
             birth: data.birth ? data.birth.split('T')[0] : ''
@@ -116,16 +124,24 @@ export function useProfileForm(accessToken) {
   const handleImageSelect = (file, type) => {
     if (!file) return false;
 
-    // 이미지 파일 유효성 검사
-    if (!file.type.startsWith('image/')) {
-      alert('이미지 파일만 업로드할 수 있습니다.');
+    // 이미지 파일 유효성 검사 (config에서 허용 타입 확인)
+    const isValidType = UPLOAD_CONFIG.allowedImageTypes.some(
+      allowedType => file.type === allowedType || file.type.startsWith('image/')
+    );
+
+    if (!isValidType) {
+      alert(VALIDATION_MESSAGES.image.invalidType);
       return false;
     }
 
-    // 파일 크기 제한 (프로필: 5MB, 배경: 10MB)
-    const maxSize = type === 'profile' ? 5 * 1024 * 1024 : 10 * 1024 * 1024;
+    // 파일 크기 제한 (config에서 설정값 가져옴)
+    const maxSize = type === 'profile'
+      ? UPLOAD_CONFIG.maxProfileImageSize
+      : UPLOAD_CONFIG.maxBackgroundImageSize;
+
     if (file.size > maxSize) {
-      alert(`파일 크기는 ${type === 'profile' ? '5MB' : '10MB'} 이하여야 합니다.`);
+      const maxMB = UPLOAD_CONFIG.bytesToMB(maxSize);
+      alert(VALIDATION_MESSAGES.image.tooLarge(maxMB));
       return false;
     }
 
@@ -157,7 +173,9 @@ export function useProfileForm(accessToken) {
     uploadFormData.append('file', file);
 
     try {
-      const response = await axios.post('/api/upload/image', uploadFormData, {
+      // API 엔드포인트를 config에서 가져옴
+      const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.uploadImage}`;
+      const response = await axios.post(url, uploadFormData, {
         headers: { 'Authorization': `Bearer ${accessToken}` },
         withCredentials: true
       });
@@ -182,12 +200,12 @@ export function useProfileForm(accessToken) {
 
     // 닉네임 필수 검사
     if (!formData.name?.trim()) {
-      newErrors.name = '닉네임을 입력해주세요.';
+      newErrors.name = VALIDATION_MESSAGES.name.required;
     }
 
     // 전화번호 형식 검사 (선택사항)
     if (formData.phoneNumber && !/^[\d-]+$/.test(formData.phoneNumber)) {
-      newErrors.phoneNumber = '전화번호는 숫자와 하이픈(-)만 입력 가능합니다.';
+      newErrors.phoneNumber = VALIDATION_MESSAGES.phoneNumber.invalid;
     }
 
     setErrors(newErrors);
@@ -241,8 +259,9 @@ export function useProfileForm(accessToken) {
         bgImage: bgImageUrl || null
       };
 
-      // API 호출
-      const response = await axios.put('/api/user/profile', requestData, {
+      // API 엔드포인트를 config에서 가져옴
+      const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.profile}`;
+      const response = await axios.put(url, requestData, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${accessToken}`
