@@ -37,7 +37,7 @@ services:
     # - ${GITHUB_REPOSITORY}는 워크플로우에서 치환됨
     # - 수동 배포 시에는 아래 이미지 이름을 직접 지정
     # 예: ghcr.io/icesnake72/sbs:latest
-    image: ghcr.io/icesnake72/sbs:latest
+    image: ghcr.io/bbangsoup/myauth_sbs:latest
 
     # 컨테이너 이름 (고정)
     # - 백엔드에서 이 이름으로 참조할 수 있음
