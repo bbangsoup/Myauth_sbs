@@ -10,7 +10,7 @@ function GNB() {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
 
   // 디버깅: GNB 렌더링 시 상태 확인
-  console.log('=== GNB 렌더링 ===');
+  console.log('==== GNB 렌더링 ====');
   console.log('isLoading:', isLoading);
   console.log('isAuthenticated:', isAuthenticated);
   console.log('user:', user);
