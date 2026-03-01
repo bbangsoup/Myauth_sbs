@@ -30,7 +30,7 @@ services:
 
     # myauth-network에 연결 (백엔드와 동일한 네트워크)
     networks:
-      - myauth-network
+      - auth-network
 
     # 재시작 정책: 수동 중지하지 않는 한 항상 재시작
     restart: unless-stopped
@@ -49,7 +49,7 @@ services:
 networks:
   # 백엔드에서 이미 생성한 myauth-network를 사용
   # external: true로 설정하여 기존 네트워크에 연결
-  myauth-network:
+  auth-network:
     external: true
 
 # ================================================

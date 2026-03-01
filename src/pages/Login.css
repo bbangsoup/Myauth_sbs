@@ -1,439 +1,228 @@
-/* 로그인 페이지 전체 컨테이너 */
 .login-container {
-  /* 최소 높이를 뷰포트 전체 높이로 설정 */
   min-height: 100vh;
-  /* flexbox 레이아웃 사용 */
+  width: 100%;
+  box-sizing: border-box;
   display: flex;
-  /* 세로 및 가로 중앙 정렬 */
+  align-items: center;
   justify-content: center;
-  align-items: center;
-  /* 전체 너비 사용 */
-  width: 100%;
-  /* 상하좌우 여백 (위 120px, 좌우 20px, 아래 100px) - GNB와 Footer 공간 확보 */
-  padding: 120px 20px 100px;
-  /* 투명한 배경 */
-  background: transparent;
-  /* box-sizing을 border-box로 설정하여 padding이 전체 크기에 포함되도록 함 */
-  box-sizing: border-box;
+  padding: 112px 16px 88px;
 }
 
-/* 로그인 카드 */
 .login-card {
-  /* 어두운 회색 배경에 80% 불투명도 (다크 모드) */
-  background: rgba(26, 26, 26, 0.8);
-  /* 뒷배경을 10px만큼 흐리게 처리 (글래스모피즘 효과) */
-  backdrop-filter: blur(10px);
-  /* 모서리를 16px만큼 둥글게 */
-  border-radius: 16px;
-  /* 내부 여백 */
-  padding: 3rem;
-  /* 카드 너비 */
-  width: 600px;
-  max-width: 600px;
-  /* box-sizing을 border-box로 설정하여 padding이 전체 크기에 포함되도록 함 */
-  box-sizing: border-box;
-  /* 그림자 효과: 큰 그림자 + 얇은 테두리 효과 */
+  width: min(100%, 560px);
+  border-radius: 18px;
+  padding: 28px;
+  background: rgba(20, 24, 31, 0.82);
+  backdrop-filter: blur(12px);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.1);
+    0 16px 40px rgba(0, 0, 0, 0.28),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
-/* 로그인 제목 */
-.login-card h1 {
-  /* 완전히 불투명한 흰색 텍스트 */
-  color: white;
-  /* 텍스트 중앙 정렬 */
+.login-title {
+  margin: 0 0 22px;
   text-align: center;
-  /* 하단 여백 */
-  margin-bottom: 2rem;
-  /* 폰트 크기 */
-  font-size: 2rem;
-  /* 폰트 굵기 bold */
-  font-weight: bold;
+  color: #ffffff;
+  font-size: clamp(1.5rem, 2vw, 2rem);
+  line-height: 1.2;
 }
 
-/* 로그인 폼 */
 .login-form {
-  /* flexbox를 세로 방향으로 사용 */
   display: flex;
   flex-direction: column;
-  /* 폼 요소들 사이에 1.5rem 간격 */
-  gap: 1.5rem;
+  gap: 14px;
 }
 
-/* 폼 그룹 (각 입력 필드를 감싸는 컨테이너) */
 .form-group {
-  /* flexbox를 세로 방향으로 사용 */
   display: flex;
   flex-direction: column;
-  /* 폼 그룹 내부 요소들 사이에 0.5rem 간격 */
-  gap: 0.5rem;
+  gap: 6px;
 }
 
-/* 입력 필드 기본 스타일 */
 .form-group input {
-  /* 내부 여백 */
-  padding: 0.75rem 1rem;
-  /* 흰색에 20% 불투명도의 테두리 */
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  /* 모서리를 8px만큼 둥글게 */
-  border-radius: 8px;
-  /* 흰색에 5% 불투명도의 배경 */
-  background: rgba(255, 255, 255, 0.05);
-  /* 완전히 불투명한 흰색 텍스트 */
-  color: white;
-  /* 폰트 크기 */
-  font-size: 1rem;
-  /* 모든 속성 변화를 0.3초 동안 부드럽게 전환 */
-  transition: all 0.3s ease;
-}
-
-/* 입력 필드 placeholder 스타일 */
-.form-group input::placeholder {
-  /* 흰색에 40% 불투명도의 텍스트 */
-  color: rgba(255, 255, 255, 0.4);
-}
-
-/* 입력 필드에 포커스가 있을 때 */
-.form-group input:focus {
-  /* 기본 outline 제거 */
-  outline: none;
-  /* 파란 보라색에 80% 불투명도의 테두리 */
-  border-color: rgba(102, 126, 234, 0.8);
-  /* 흰색에 8% 불투명도의 배경 (포커스 시 약간 밝게) */
-  background: rgba(255, 255, 255, 0.08);
-  /* 파란 보라색 포커스 링 효과 */
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
-}
-
-/* 에러가 있는 입력 필드 */
-.form-group input.error {
-  /* 빨간색에 80% 불투명도의 테두리 */
-  border-color: rgba(255, 82, 82, 0.8);
-  /* 빨간색에 5% 불투명도의 배경 */
-  background: rgba(255, 82, 82, 0.05);
-}
-
-/* 에러 메시지 스타일 */
-.error-message {
-  /* 밝은 빨간색 텍스트 */
-  color: #ff5252;
-  /* 작은 폰트 크기 */
-  font-size: 0.85rem;
-  /* 위쪽 여백 */
-  margin-top: 0.25rem;
-}
-
-/* 버튼 그룹 */
-.button-group {
-  /* 위쪽 여백 */
-  margin-top: 0.5rem;
-}
-
-/* 로그인 버튼 */
-.login-button {
-  /* 전체 너비 사용 */
   width: 100%;
-  /* 내부 여백 */
-  padding: 0.875rem 1.5rem;
-  /* 테두리 제거 */
+  box-sizing: border-box;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  padding: 12px 14px;
+  font-size: 0.98rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.form-group input::placeholder {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #6ea3ff;
+  box-shadow: 0 0 0 3px rgba(110, 163, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.form-group input.error {
+  border-color: #ff6f6f;
+  background: rgba(255, 111, 111, 0.08);
+}
+
+.error-message {
+  color: #ff9090;
+  font-size: 0.82rem;
+  line-height: 1.3;
+}
+
+.button-group,
+.social-login-group {
+  margin-top: 2px;
+}
+
+.login-button,
+.kakao-login-button {
+  width: 100%;
+  min-height: 46px;
   border: none;
-  /* 모서리를 8px만큼 둥글게 */
-  border-radius: 8px;
-  /* 폰트 크기 */
-  font-size: 1rem;
-  /* 폰트 굵기 600 (semibold) */
+  border-radius: 10px;
+  font-size: 0.98rem;
   font-weight: 600;
-  /* 마우스 커서를 포인터로 변경 */
   cursor: pointer;
-  /* 모든 속성 변화를 0.3초 동안 부드럽게 전환 */
-  transition: all 0.3s ease;
-  /* 파란 보라색 그라데이션 배경 */
-  background: linear-gradient(145deg, #667eea, #764ba2);
-  /* 완전히 불투명한 흰색 텍스트 */
-  color: white;
-  /* 파란 보라색 그림자 효과 */
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, background-color 0.2s ease;
 }
 
-/* 로그인 버튼에 마우스를 올렸을 때 */
+.login-button {
+  background: linear-gradient(145deg, #5e7ef5, #4e67cf);
+  color: #ffffff;
+  box-shadow: 0 8px 16px rgba(62, 98, 224, 0.34);
+}
+
 .login-button:hover:not(:disabled) {
-  /* 위로 살짝 이동하는 효과 */
-  transform: translateY(-2px);
-  /* 그림자를 더 크고 진하게 */
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(62, 98, 224, 0.42);
 }
 
-/* 로그인 버튼을 클릭했을 때 */
-.login-button:active {
-  /* 원래 위치로 돌아감 */
-  transform: translateY(0);
-}
-
-/* 로그인 버튼이 비활성화되었을 때 */
-.login-button:disabled {
-  /* 불투명도 60%로 설정 */
-  opacity: 0.6;
-  /* 마우스 커서를 금지 모양으로 변경 */
-  cursor: not-allowed;
-  /* transform 효과 제거 */
-  transform: none;
-}
-
-/* 로그인 버튼이 비활성화 상태에서 마우스를 올렸을 때 */
-.login-button:disabled:hover {
-  /* transform 효과 제거 */
-  transform: none;
-  /* 기본 그림자 유지 */
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-/* 구분선 (또는) */
-.divider {
-  /* 위아래 여백 */
-  margin: 1.5rem 0;
-  /* flexbox 레이아웃 */
-  display: flex;
-  /* 가로 중앙 정렬 */
+.kakao-login-button {
+  background: #fee500;
+  color: #111111;
+  box-shadow: 0 6px 14px rgba(254, 229, 0, 0.28);
+  display: inline-flex;
   align-items: center;
-  /* 텍스트 중앙 정렬 */
+  justify-content: center;
+  gap: 8px;
+}
+
+.kakao-login-button:hover:not(:disabled) {
+  background: #f5dc00;
+  transform: translateY(-1px);
+}
+
+.login-button:disabled,
+.kakao-login-button:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.divider {
+  margin: 8px 0 2px;
+  display: flex;
+  align-items: center;
   text-align: center;
 }
 
 .divider::before,
 .divider::after {
-  /* flex로 남은 공간 균등 분배 */
-  content: '';
+  content: "";
   flex: 1;
-  /* 흰색에 20% 불투명도의 선 */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.24);
 }
 
 .divider span {
-  /* 좌우 여백 */
-  padding: 0 1rem;
-  /* 흰색에 50% 불투명도의 텍스트 */
-  color: rgba(255, 255, 255, 0.5);
-  /* 작은 폰트 크기 */
-  font-size: 0.9rem;
+  padding: 0 12px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.85rem;
 }
 
-/* 소셜 로그인 그룹 */
-.social-login-group {
-  /* 아래쪽 여백 */
-  margin-bottom: 1rem;
-}
-
-/* 카카오 로그인 버튼 */
-.kakao-login-button {
-  /* 전체 너비 사용 */
-  width: 100%;
-  /* 내부 여백 */
-  padding: 0.875rem 1.5rem;
-  /* 테두리 제거 */
-  border: none;
-  /* 모서리를 8px만큼 둥글게 */
-  border-radius: 8px;
-  /* 폰트 크기 */
-  font-size: 1rem;
-  /* 폰트 굵기 600 (semibold) */
-  font-weight: 600;
-  /* 마우스 커서를 포인터로 변경 */
-  cursor: pointer;
-  /* 모든 속성 변화를 0.3초 동안 부드럽게 전환 */
-  transition: all 0.3s ease;
-  /* 카카오 노란색 배경 */
-  background-color: #FEE500;
-  /* 카카오 검은색 텍스트 */
-  color: #000000;
-  /* 그림자 효과 */
-  box-shadow: 0 4px 12px rgba(254, 229, 0, 0.3);
-  /* flexbox 레이아웃 (아이콘과 텍스트 정렬용) */
-  display: flex;
-  /* 가로 중앙 정렬 */
-  justify-content: center;
-  /* 세로 중앙 정렬 */
-  align-items: center;
-  /* 아이콘과 텍스트 사이 간격 */
-  gap: 0.5rem;
-}
-
-/* 카카오 아이콘 */
-.kakao-icon {
-  /* 세로 정렬 */
-  vertical-align: middle;
-}
-
-/* 카카오 로그인 버튼에 마우스를 올렸을 때 */
-.kakao-login-button:hover:not(:disabled) {
-  /* 약간 어두운 카카오 노란색 */
-  background-color: #FDD835;
-  /* 위로 살짝 이동하는 효과 */
-  transform: translateY(-2px);
-  /* 그림자를 더 크고 진하게 */
-  box-shadow: 0 6px 16px rgba(254, 229, 0, 0.4);
-}
-
-/* 카카오 로그인 버튼을 클릭했을 때 */
-.kakao-login-button:active {
-  /* 원래 위치로 돌아감 */
-  transform: translateY(0);
-}
-
-/* 카카오 로그인 버튼이 비활성화되었을 때 */
-.kakao-login-button:disabled {
-  /* 불투명도 60%로 설정 */
-  opacity: 0.6;
-  /* 마우스 커서를 금지 모양으로 변경 */
-  cursor: not-allowed;
-  /* transform 효과 제거 */
-  transform: none;
-}
-
-/* 회원가입 링크 영역 */
 .signup-link {
-  /* 텍스트 중앙 정렬 */
+  margin-top: 6px;
   text-align: center;
-  /* 위쪽 여백 */
-  margin-top: 1rem;
-  /* 폰트 크기 */
-  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 0.92rem;
+  line-height: 1.4;
 }
 
-/* 회원가입 링크 텍스트 */
-.signup-link > span {
-  /* 흰색에 70% 불투명도의 텍스트 */
-  color: rgba(255, 255, 255, 0.7);
+.signup-link p {
+  margin: 0;
 }
 
-/* 회원가입 링크 */
 .signup-link a {
-  /* 하늘색 텍스트 */
-  color: #4fc3f7 !important;
-  /* 링크 밑줄 제거 */
+  color: #84c7ff;
   text-decoration: none;
-  /* 폰트 굵기 400 (regular) */
-  font-weight: 400;
-  /* inline-flex 레이아웃 사용 */
-  display: inline-flex;
-  /* 자식 요소들을 세로 중앙 정렬 */
-  align-items: center;
-  /* 자식 요소들 사이에 0.5rem 간격 */
-  gap: 0.5rem;
-  /* 투명한 배경 */
-  background: transparent !important;
 }
 
-/* 회원가입 링크에 마우스를 올렸을 때 */
 .signup-link a:hover {
-  /* 더 진한 하늘색 텍스트 */
-  color: #29b6f6 !important;
+  color: #9cd3ff;
 }
 
-/* 라이트 모드일 때 스타일 */
-@media (prefers-color-scheme: light) {
-  /* 로그인 카드 배경을 밝게 */
+.kakao-icon {
+  display: block;
+  flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+  .login-container {
+    padding: 92px 14px 72px;
+  }
+
   .login-card {
-    /* 흰색에 90% 불투명도의 배경 */
-    background: rgba(255, 255, 255, 0.9);
-    /* 그림자 효과: 큰 그림자 + 얇은 테두리 효과 */
-    box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.1),
-      0 0 0 1px rgba(0, 0, 0, 0.1);
+    width: min(100%, 500px);
+    padding: 22px 18px;
+    border-radius: 14px;
   }
 
-  /* 제목 텍스트를 어둡게 */
-  .login-card h1 {
-    /* 어두운 회색 텍스트 */
-    color: #1a1a1a;
+  .login-title {
+    margin-bottom: 18px;
+    font-size: 1.45rem;
   }
 
-  /* 입력 필드 배경을 밝게 */
-  .form-group input {
-    /* 검은색에 20% 불투명도의 테두리 */
-    border-color: rgba(0, 0, 0, 0.2);
-    /* 흰색에 80% 불투명도의 배경 */
-    background: rgba(255, 255, 255, 0.8);
-    /* 어두운 회색 텍스트 */
-    color: #1a1a1a;
+  .login-form {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 479px) {
+  .login-container {
+    padding: 82px 12px 64px;
   }
 
-  /* 입력 필드 placeholder를 어둡게 */
-  .form-group input::placeholder {
-    /* 어두운 회색에 40% 불투명도의 텍스트 */
-    color: rgba(26, 26, 26, 0.4);
+  .login-card {
+    padding: 18px 14px;
+    border-radius: 12px;
   }
 
-  /* 입력 필드 포커스 시 */
-  .form-group input:focus {
-    /* 하늘색에 80% 불투명도의 테두리 */
-    border-color: rgba(79, 195, 247, 0.8);
-    /* 흰색에 95% 불투명도의 배경 */
-    background: rgba(255, 255, 255, 0.95);
-    /* 하늘색 포커스 링 효과 */
-    box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.2);
-  }
-
-  /* 로그인 버튼 배경을 하늘색 그라데이션으로 */
-  .login-button {
-    /* 하늘색 그라데이션 배경 */
-    background: linear-gradient(145deg, #4fc3f7, #29b6f6);
-    /* 하늘색 그림자 */
-    box-shadow: 0 4px 12px rgba(79, 195, 247, 0.4);
-  }
-
-  /* 구분선 스타일 */
-  .divider::before,
-  .divider::after {
-    /* 검은색에 20% 불투명도의 선 */
-    border-bottom-color: rgba(0, 0, 0, 0.2);
+  .form-group input,
+  .login-button,
+  .kakao-login-button {
+    font-size: 0.95rem;
   }
 
   .divider span {
-    /* 검은색에 50% 불투명도의 텍스트 */
-    color: rgba(0, 0, 0, 0.5);
+    font-size: 0.8rem;
+    padding: 0 8px;
   }
 
-  /* 회원가입 링크 텍스트를 어둡게 */
-  .signup-link > span {
-    /* 어두운 회색에 70% 불투명도의 텍스트 */
-    color: rgba(26, 26, 26, 0.7);
-  }
-
-  /* 회원가입 링크 */
-  .signup-link a {
-    /* 하늘색 텍스트 */
-    color: #4fc3f7 !important;
-    /* 투명한 배경 */
-    background: transparent !important;
-  }
-
-  /* 회원가입 링크 호버 시 */
-  .signup-link a:hover {
-    /* 더 진한 하늘색 텍스트 */
-    color: #29b6f6 !important;
+  .signup-link {
+    font-size: 0.86rem;
   }
 }
 
-/* 다크 모드일 때 스타일 */
-@media (prefers-color-scheme: dark) {
-  /* 회원가입 링크 텍스트 */
-  .signup-link > span {
-    /* 흰색에 70% 불투명도의 텍스트 */
-    color: rgba(255, 255, 255, 0.7);
+@media (min-width: 1024px) {
+  .login-container {
+    padding: 132px 24px 108px;
   }
 
-  /* 회원가입 링크 */
-  .signup-link a {
-    /* 하늘색 텍스트 */
-    color: #4fc3f7 !important;
-    /* 투명한 배경 */
-    background: transparent !important;
-  }
-
-  /* 회원가입 링크 호버 시 */
-  .signup-link a:hover {
-    /* 더 진한 하늘색 텍스트 */
-    color: #29b6f6 !important;
+  .login-card {
+    padding: 34px;
+    border-radius: 20px;
   }
 }
