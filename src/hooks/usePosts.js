@@ -21,9 +21,18 @@ const normalizePostStats = (post) => {
     post.view_count
   );
 
+  const normalizedCommentCount = pickFirstDefined(
+    post.commentCount,
+    post.commentsCount,
+    post.commentCnt,
+    post.comments_count,
+    post.comment_count
+  );
+
   return {
     ...post,
     viewCount: toSafeNumber(normalizedViewCount, 0),
+    commentCount: toSafeNumber(normalizedCommentCount, 0),
   };
 };
 

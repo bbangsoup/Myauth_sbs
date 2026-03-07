@@ -17,6 +17,38 @@ function PostDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isLikeLoading, setIsLikeLoading] = useState(false);
+  const [comments, setComments] = useState([]);
+  const [isCommentsLoading, setIsCommentsLoading] = useState(false);
+  const [commentsError, setCommentsError] = useState(null);
+  const [commentInput, setCommentInput] = useState('');
+  const [isCommentSubmitting, setIsCommentSubmitting] = useState(false);
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingContent, setEditingContent] = useState('');
+  const [commentActionLoadingId, setCommentActionLoadingId] = useState(null);
+
+  const getAuthHeaders = useCallback(() => (
+    accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
+  ), [accessToken]);
+
+  const normalizeComment = useCallback((comment) => {
+    if (!comment || typeof comment !== 'object') return comment;
+
+    const deleted = Boolean(
+      comment.isDeleted
+      ?? comment.deleted
+      ?? (typeof comment.status === 'string' && comment.status.toUpperCase() === 'DELETED')
+    );
+
+    return {
+      ...comment,
+      content: comment.content || '',
+      createdAt: comment.createdAt || comment.updatedAt || null,
+      authorName: comment.author?.name || comment.userName || comment.writerName || '알 수 없음',
+      authorImage: comment.author?.profileImage || comment.userProfileImage || comment.writerProfileImage || null,
+      authorId: comment.author?.id || comment.userId || comment.writerId || null,
+      isDeleted: deleted,
+    };
+  }, []);
 
   const fetchPost = useCallback(async () => {
     setIsLoading(true);
@@ -51,6 +83,36 @@ function PostDetail() {
   useEffect(() => {
     fetchPost();
   }, [fetchPost]);
+
+  const fetchComments = useCallback(async () => {
+    setIsCommentsLoading(true);
+    setCommentsError(null);
+
+    try {
+      const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.posts}/${id}/comments?page=0&size=50`;
+      const response = await axios.get(url, {
+        headers: getAuthHeaders(),
+        withCredentials: true,
+      });
+
+      const payload = response?.data?.data;
+      const content = Array.isArray(payload)
+        ? payload
+        : (Array.isArray(payload?.content) ? payload.content : []);
+
+      setComments(content.map(normalizeComment));
+    } catch (err) {
+      console.error('댓글 목록 조회 실패:', err);
+      setCommentsError('댓글을 불러오는데 실패했습니다.');
+      setComments([]);
+    } finally {
+      setIsCommentsLoading(false);
+    }
+  }, [id, getAuthHeaders, normalizeComment]);
+
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
 
   const handleDelete = async () => {
     if (!window.confirm('게시글을 삭제하시겠습니까?')) return;
@@ -177,6 +239,109 @@ function PostDetail() {
     }
   };
 
+  const handleCreateComment = async () => {
+    if (!isAuthenticated) {
+      alert('로그인 후 댓글을 작성할 수 있습니다.');
+      return;
+    }
+
+    const content = commentInput.trim();
+    if (!content) {
+      alert('댓글 내용을 입력해주세요.');
+      return;
+    }
+
+    setIsCommentSubmitting(true);
+    try {
+      const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.posts}/${id}/comments`;
+      const response = await axios.post(
+        url,
+        { content },
+        { headers: getAuthHeaders(), withCredentials: true }
+      );
+
+      const created = normalizeComment(response?.data?.data);
+      if (created?.id) {
+        setComments((prev) => [created, ...prev]);
+      } else {
+        await fetchComments();
+      }
+
+      setPost((prev) => (
+        prev ? { ...prev, commentCount: (Number(prev.commentCount) || 0) + 1 } : prev
+      ));
+      setCommentInput('');
+    } catch (err) {
+      console.error('댓글 작성 실패:', err);
+      alert('댓글 작성에 실패했습니다.');
+    } finally {
+      setIsCommentSubmitting(false);
+    }
+  };
+
+  const startEditComment = (comment) => {
+    setEditingCommentId(comment.id);
+    setEditingContent(comment.content || '');
+  };
+
+  const cancelEditComment = () => {
+    setEditingCommentId(null);
+    setEditingContent('');
+  };
+
+  const handleUpdateComment = async (commentId) => {
+    const content = editingContent.trim();
+    if (!content) {
+      alert('댓글 내용을 입력해주세요.');
+      return;
+    }
+
+    setCommentActionLoadingId(commentId);
+    try {
+      const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.comments}/${commentId}`;
+      const response = await axios.put(
+        url,
+        { content },
+        { headers: getAuthHeaders(), withCredentials: true }
+      );
+
+      const updated = normalizeComment(response?.data?.data);
+
+      setComments((prev) => prev.map((comment) => (
+        comment.id === commentId ? { ...comment, ...updated } : comment
+      )));
+      cancelEditComment();
+    } catch (err) {
+      console.error('댓글 수정 실패:', err);
+      alert('댓글 수정에 실패했습니다.');
+    } finally {
+      setCommentActionLoadingId(null);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm('댓글을 삭제하시겠습니까?')) return;
+
+    setCommentActionLoadingId(commentId);
+    try {
+      const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.comments}/${commentId}`;
+      await axios.delete(url, {
+        headers: getAuthHeaders(),
+        withCredentials: true,
+      });
+
+      await fetchComments();
+      setPost((prev) => (
+        prev ? { ...prev, commentCount: Math.max(0, (Number(prev.commentCount) || 0) - 1) } : prev
+      ));
+    } catch (err) {
+      console.error('댓글 삭제 실패:', err);
+      alert('댓글 삭제에 실패했습니다.');
+    } finally {
+      setCommentActionLoadingId(null);
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -194,6 +359,13 @@ function PostDetail() {
     user.id === post.userId ||
     user.id === post.author?.id ||
     user.email === post.author?.email
+  );
+  const isCommentOwner = (comment) => Boolean(
+    user && (
+      user.id === comment.authorId ||
+      user.id === comment.userId ||
+      user.email === comment.author?.email
+    )
   );
 
   return (
@@ -255,9 +427,97 @@ function PostDetail() {
               >
                 {post.liked ?? post.isLiked ? '❤️' : '🤍'} {post.likeCount || 0}
               </button>
-              <span className="post-detail-stat">💬 {post.commentCount || 0}</span>
+              <span className="post-detail-stat">💬 {Math.max(Number(post.commentCount) || 0, comments.length)}</span>
               <span className="post-detail-stat">👁 {post.viewCount || 0}</span>
             </div>
+
+            <section className="post-comments-section">
+              <h3 className="post-comments-title">댓글</h3>
+
+              <div className="post-comment-form">
+                <textarea
+                  value={commentInput}
+                  onChange={(e) => setCommentInput(e.target.value)}
+                  placeholder={isAuthenticated ? '댓글을 입력하세요.' : '로그인 후 댓글을 작성할 수 있습니다.'}
+                  disabled={!isAuthenticated || isCommentSubmitting}
+                  maxLength={1000}
+                />
+                <button
+                  type="button"
+                  onClick={handleCreateComment}
+                  disabled={!isAuthenticated || isCommentSubmitting || !commentInput.trim()}
+                >
+                  {isCommentSubmitting ? '등록 중...' : '댓글 등록'}
+                </button>
+              </div>
+
+              {isCommentsLoading ? (
+                <p className="post-comments-message">댓글을 불러오는 중...</p>
+              ) : commentsError ? (
+                <div className="post-comments-error">
+                  <p>{commentsError}</p>
+                  <button type="button" onClick={fetchComments}>다시 시도</button>
+                </div>
+              ) : comments.length === 0 ? (
+                <p className="post-comments-message">아직 댓글이 없습니다.</p>
+              ) : (
+                <ul className="post-comment-list">
+                  {comments.map((comment) => {
+                    const canManage = isCommentOwner(comment) && !comment.isDeleted;
+                    const isEditing = editingCommentId === comment.id;
+                    const isBusy = commentActionLoadingId === comment.id;
+
+                    return (
+                      <li key={comment.id} className="post-comment-item">
+                        <div className="post-comment-head">
+                          <div className="post-comment-author-wrap">
+                            {comment.authorImage ? (
+                              <img src={comment.authorImage} alt={comment.authorName} className="post-comment-avatar" />
+                            ) : (
+                              <div className="post-comment-avatar-placeholder">{comment.authorName.charAt(0)}</div>
+                            )}
+                            <div className="post-comment-meta">
+                              <span className="post-comment-author">{comment.authorName}</span>
+                              <span className="post-comment-date">{formatDate(comment.createdAt)}</span>
+                            </div>
+                          </div>
+                          {canManage && !isEditing && (
+                            <div className="post-comment-actions">
+                              <button type="button" onClick={() => startEditComment(comment)} disabled={isBusy}>수정</button>
+                              <button type="button" onClick={() => handleDeleteComment(comment.id)} disabled={isBusy}>삭제</button>
+                            </div>
+                          )}
+                        </div>
+
+                        {isEditing ? (
+                          <div className="post-comment-edit">
+                            <textarea
+                              value={editingContent}
+                              onChange={(e) => setEditingContent(e.target.value)}
+                              maxLength={1000}
+                            />
+                            <div className="post-comment-edit-actions">
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateComment(comment.id)}
+                                disabled={isBusy || !editingContent.trim()}
+                              >
+                                저장
+                              </button>
+                              <button type="button" onClick={cancelEditComment} disabled={isBusy}>취소</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className={`post-comment-content ${comment.isDeleted ? 'deleted' : ''}`}>
+                            {comment.isDeleted ? '삭제된 댓글입니다.' : comment.content}
+                          </p>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
 
             {post.visibility && post.visibility !== 'PUBLIC' && (
               <div className="post-detail-visibility">

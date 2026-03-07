@@ -246,3 +246,185 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.post-comments-section {
+  margin-top: 1.2rem;
+}
+
+.post-comments-title {
+  margin: 0 0 0.8rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+}
+
+.post-comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.post-comment-form textarea {
+  width: 100%;
+  min-height: 90px;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.post-comment-form button {
+  align-self: flex-end;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+}
+
+.post-comment-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.post-comments-message {
+  margin: 0.4rem 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+}
+
+.post-comments-error p {
+  margin: 0 0 0.5rem;
+  color: #ff9aa2;
+}
+
+.post-comments-error button {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+}
+
+.post-comment-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.post-comment-item {
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.post-comment-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.post-comment-author-wrap {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.post-comment-avatar,
+.post-comment-avatar-placeholder {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+
+.post-comment-avatar {
+  object-fit: cover;
+}
+
+.post-comment-avatar-placeholder {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.78rem;
+}
+
+.post-comment-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+.post-comment-author {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.post-comment-date {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.76rem;
+}
+
+.post-comment-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.post-comment-actions button,
+.post-comment-edit-actions button {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+  padding: 0.2rem 0.5rem;
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+
+.post-comment-content {
+  margin: 0.55rem 0 0;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.5;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.post-comment-content.deleted {
+  color: rgba(255, 255, 255, 0.45);
+  font-style: italic;
+}
+
+.post-comment-edit {
+  margin-top: 0.5rem;
+}
+
+.post-comment-edit textarea {
+  width: 100%;
+  min-height: 70px;
+  box-sizing: border-box;
+  padding: 0.6rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  resize: vertical;
+}
+
+.post-comment-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+}
