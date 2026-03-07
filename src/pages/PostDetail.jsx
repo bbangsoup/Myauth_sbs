@@ -73,6 +73,16 @@ function PostDetail() {
   const handleToggleLike = async () => {
     if (!post || isLikeLoading) return;
 
+    const isOwnerPost = user && (
+      user.id === post.userId ||
+      user.id === post.author?.id ||
+      user.email === post.author?.email
+    );
+
+    if (isOwnerPost) {
+      return;
+    }
+
     if (!isAuthenticated) {
       alert('로그인 후 좋아요를 사용할 수 있습니다.');
       return;
@@ -240,7 +250,8 @@ function PostDetail() {
                 type="button"
                 className={`post-detail-stat post-like-button ${post.liked ?? post.isLiked ? 'active' : ''}`}
                 onClick={handleToggleLike}
-                disabled={isLikeLoading}
+                disabled={isLikeLoading || isOwner}
+                title={isOwner ? '본인 게시물은 좋아요를 누를 수 없습니다.' : '좋아요'}
               >
                 {post.liked ?? post.isLiked ? '❤️' : '🤍'} {post.likeCount || 0}
               </button>

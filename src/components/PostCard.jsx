@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { API_CONFIG } from '../config';
 
 function PostCard({ post }) {
-  const { isAuthenticated, accessToken } = useAuth();
+  const { user, isAuthenticated, accessToken } = useAuth();
 
   const [liked, setLiked] = useState(Boolean(post?.liked ?? post?.isLiked));
   const [likeCount, setLikeCount] = useState(post?.likeCount ?? 0);
@@ -36,6 +36,10 @@ function PostCard({ post }) {
   const handleToggleLike = async (e) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (isOwner) {
+      return;
+    }
 
     if (!isAuthenticated) {
       alert('로그인 후 좋아요를 사용할 수 있습니다.');
@@ -125,6 +129,11 @@ function PostCard({ post }) {
 
   const authorName = post.author?.name || post.userName || '알 수 없음';
   const authorImage = post.author?.profileImage || post.userProfileImage || null;
+  const isOwner = user && (
+    user.id === post.userId ||
+    user.id === post.author?.id ||
+    user.email === post.author?.email
+  );
 
   return (
     <Link to={`/posts/${post.id}`} className="post-card">
@@ -161,7 +170,8 @@ function PostCard({ post }) {
           type="button"
           className={`post-card-stat post-card-like-button ${liked ? 'active' : ''}`}
           onClick={handleToggleLike}
-          disabled={isLikeLoading}
+          disabled={isLikeLoading || isOwner}
+          title={isOwner ? '본인 게시물은 좋아요를 누를 수 없습니다.' : '좋아요'}
         >
           {liked ? '❤️' : '🤍'} {likeCount}
         </button>
