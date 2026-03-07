@@ -36,6 +36,8 @@ const normalizePostStats = (post) => {
   };
 };
 
+const extractResponseData = (response) => response?.data?.data || response?.data || null;
+
 /**
  * usePosts 커스텀 훅
  *
@@ -93,7 +95,36 @@ export function usePosts(accessToken, { myPostsOnly = false } = {}) {
         const postData = Array.isArray(response.data.data)
           ? response.data.data
           : response.data.data.content || [];
-        setPosts(postData.map(normalizePostStats));
+
+        const normalizedPosts = postData.map(normalizePostStats);
+
+        // 목록 API에서 조회수/댓글수가 누락되거나 0으로 내려오는 경우를 보정하기 위해
+        // 상세 API 값을 병합한다.
+        const hydratedPosts = await Promise.all(
+          normalizedPosts.map(async (post) => {
+            if (!post?.id) return post;
+
+            try {
+              const detailUrl = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.posts}/${post.id}`;
+              const detailResponse = await axios.get(detailUrl, {
+                headers,
+                withCredentials: true,
+              });
+              const latest = normalizePostStats(extractResponseData(detailResponse) || {});
+
+              return {
+                ...post,
+                viewCount: latest.viewCount,
+                commentCount: latest.commentCount,
+              };
+            } catch (detailErr) {
+              console.warn('게시글 통계 보정 실패:', post.id, detailErr);
+              return post;
+            }
+          })
+        );
+
+        setPosts(hydratedPosts);
       } else {
         setPosts([]);
       }
