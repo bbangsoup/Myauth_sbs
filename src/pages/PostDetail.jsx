@@ -25,6 +25,11 @@ function PostDetail() {
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingContent, setEditingContent] = useState('');
   const [commentActionLoadingId, setCommentActionLoadingId] = useState(null);
+  const [repliesByCommentId, setRepliesByCommentId] = useState({});
+  const [isRepliesVisibleByCommentId, setIsRepliesVisibleByCommentId] = useState({});
+  const [isRepliesLoadingByCommentId, setIsRepliesLoadingByCommentId] = useState({});
+  const [replyInputsByCommentId, setReplyInputsByCommentId] = useState({});
+  const [isReplySubmittingByCommentId, setIsReplySubmittingByCommentId] = useState({});
 
   const getAuthHeaders = useCallback(() => (
     accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
@@ -46,6 +51,8 @@ function PostDetail() {
       authorName: comment.author?.name || comment.userName || comment.writerName || '알 수 없음',
       authorImage: comment.author?.profileImage || comment.userProfileImage || comment.writerProfileImage || null,
       authorId: comment.author?.id || comment.userId || comment.writerId || null,
+      parentCommentId: comment.parentCommentId || comment.parentId || comment.parent?.id || null,
+      replyCount: Number(comment.replyCount ?? comment.repliesCount ?? comment.replyCnt ?? 0) || 0,
       isDeleted: deleted,
     };
   }, []);
@@ -310,6 +317,15 @@ function PostDetail() {
       setComments((prev) => prev.map((comment) => (
         comment.id === commentId ? { ...comment, ...updated } : comment
       )));
+      setRepliesByCommentId((prev) => {
+        const next = { ...prev };
+        Object.keys(next).forEach((key) => {
+          next[key] = (next[key] || []).map((reply) => (
+            reply.id === commentId ? { ...reply, ...updated } : reply
+          ));
+        });
+        return next;
+      });
       cancelEditComment();
     } catch (err) {
       console.error('댓글 수정 실패:', err);
@@ -319,7 +335,7 @@ function PostDetail() {
     }
   };
 
-  const handleDeleteComment = async (commentId) => {
+  const handleDeleteComment = async (commentId, parentCommentId = null) => {
     if (!window.confirm('댓글을 삭제하시겠습니까?')) return;
 
     setCommentActionLoadingId(commentId);
@@ -330,7 +346,16 @@ function PostDetail() {
         withCredentials: true,
       });
 
-      await fetchComments();
+      if (parentCommentId) {
+        await fetchReplies(parentCommentId);
+        setComments((prev) => prev.map((comment) => (
+          comment.id === parentCommentId
+            ? { ...comment, replyCount: Math.max(0, (Number(comment.replyCount) || 0) - 1) }
+            : comment
+        )));
+      } else {
+        await fetchComments();
+      }
       setPost((prev) => (
         prev ? { ...prev, commentCount: Math.max(0, (Number(prev.commentCount) || 0) - 1) } : prev
       ));
@@ -339,6 +364,88 @@ function PostDetail() {
       alert('댓글 삭제에 실패했습니다.');
     } finally {
       setCommentActionLoadingId(null);
+    }
+  };
+
+  const fetchReplies = useCallback(async (commentId) => {
+    setIsRepliesLoadingByCommentId((prev) => ({ ...prev, [commentId]: true }));
+    try {
+      const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.comments}/${commentId}/replies`;
+      const response = await axios.get(url, {
+        headers: getAuthHeaders(),
+        withCredentials: true,
+      });
+
+      const payload = response?.data?.data;
+      const replyList = Array.isArray(payload) ? payload.map(normalizeComment) : [];
+      setRepliesByCommentId((prev) => ({ ...prev, [commentId]: replyList }));
+      return replyList;
+    } catch (err) {
+      console.error('대댓글 목록 조회 실패:', err);
+      setRepliesByCommentId((prev) => ({ ...prev, [commentId]: [] }));
+      return [];
+    } finally {
+      setIsRepliesLoadingByCommentId((prev) => ({ ...prev, [commentId]: false }));
+    }
+  }, [getAuthHeaders, normalizeComment]);
+
+  const toggleReplies = async (commentId) => {
+    const visible = Boolean(isRepliesVisibleByCommentId[commentId]);
+    if (visible) {
+      setIsRepliesVisibleByCommentId((prev) => ({ ...prev, [commentId]: false }));
+      return;
+    }
+
+    setIsRepliesVisibleByCommentId((prev) => ({ ...prev, [commentId]: true }));
+    if (!Array.isArray(repliesByCommentId[commentId])) {
+      await fetchReplies(commentId);
+    }
+  };
+
+  const handleCreateReply = async (commentId) => {
+    if (!isAuthenticated) {
+      alert('로그인 후 답글을 작성할 수 있습니다.');
+      return;
+    }
+
+    const content = (replyInputsByCommentId[commentId] || '').trim();
+    if (!content) {
+      alert('답글 내용을 입력해주세요.');
+      return;
+    }
+
+    setIsReplySubmittingByCommentId((prev) => ({ ...prev, [commentId]: true }));
+    try {
+      const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.comments}/${commentId}/replies`;
+      const response = await axios.post(
+        url,
+        { content },
+        { headers: getAuthHeaders(), withCredentials: true }
+      );
+
+      const created = normalizeComment(response?.data?.data);
+      if (created?.id) {
+        setRepliesByCommentId((prev) => ({
+          ...prev,
+          [commentId]: [created, ...(prev[commentId] || [])],
+        }));
+      } else {
+        await fetchReplies(commentId);
+      }
+
+      setComments((prev) => prev.map((comment) => (
+        comment.id === commentId ? { ...comment, replyCount: (Number(comment.replyCount) || 0) + 1 } : comment
+      )));
+      setPost((prev) => (
+        prev ? { ...prev, commentCount: (Number(prev.commentCount) || 0) + 1 } : prev
+      ));
+      setReplyInputsByCommentId((prev) => ({ ...prev, [commentId]: '' }));
+      setIsRepliesVisibleByCommentId((prev) => ({ ...prev, [commentId]: true }));
+    } catch (err) {
+      console.error('대댓글 작성 실패:', err);
+      alert('대댓글 작성에 실패했습니다.');
+    } finally {
+      setIsReplySubmittingByCommentId((prev) => ({ ...prev, [commentId]: false }));
     }
   };
 
@@ -466,6 +573,12 @@ function PostDetail() {
                     const canManage = isCommentOwner(comment) && !comment.isDeleted;
                     const isEditing = editingCommentId === comment.id;
                     const isBusy = commentActionLoadingId === comment.id;
+                    const repliesVisible = Boolean(isRepliesVisibleByCommentId[comment.id]);
+                    const replies = repliesByCommentId[comment.id] || [];
+                    const isRepliesLoading = Boolean(isRepliesLoadingByCommentId[comment.id]);
+                    const replyInput = replyInputsByCommentId[comment.id] || '';
+                    const isReplySubmitting = Boolean(isReplySubmittingByCommentId[comment.id]);
+                    const totalReplyCount = Math.max(Number(comment.replyCount) || 0, replies.length);
 
                     return (
                       <li key={comment.id} className="post-comment-item">
@@ -511,6 +624,107 @@ function PostDetail() {
                           <p className={`post-comment-content ${comment.isDeleted ? 'deleted' : ''}`}>
                             {comment.isDeleted ? '삭제된 댓글입니다.' : comment.content}
                           </p>
+                        )}
+
+                        <div className="post-reply-controls">
+                          <button type="button" onClick={() => toggleReplies(comment.id)}>
+                            {repliesVisible ? '답글 숨기기' : `답글 보기 (${totalReplyCount})`}
+                          </button>
+                          {!comment.isDeleted && isAuthenticated && (
+                            <button
+                              type="button"
+                              onClick={() => setIsRepliesVisibleByCommentId((prev) => ({ ...prev, [comment.id]: true }))}
+                            >
+                              답글 작성
+                            </button>
+                          )}
+                        </div>
+
+                        {repliesVisible && (
+                          <div className="post-reply-section">
+                            {isRepliesLoading ? (
+                              <p className="post-comments-message">답글을 불러오는 중...</p>
+                            ) : (
+                              <>
+                                {replies.length > 0 && (
+                                  <ul className="post-reply-list">
+                                    {replies.map((reply) => {
+                                      const canManageReply = isCommentOwner(reply) && !reply.isDeleted;
+                                      const isEditingReply = editingCommentId === reply.id;
+                                      const isBusyReply = commentActionLoadingId === reply.id;
+
+                                      return (
+                                        <li key={reply.id} className="post-reply-item">
+                                          <div className="post-comment-head">
+                                            <div className="post-comment-author-wrap">
+                                              {reply.authorImage ? (
+                                                <img src={reply.authorImage} alt={reply.authorName} className="post-comment-avatar" />
+                                              ) : (
+                                                <div className="post-comment-avatar-placeholder">{reply.authorName.charAt(0)}</div>
+                                              )}
+                                              <div className="post-comment-meta">
+                                                <span className="post-comment-author">{reply.authorName}</span>
+                                                <span className="post-comment-date">{formatDate(reply.createdAt)}</span>
+                                              </div>
+                                            </div>
+                                            {canManageReply && !isEditingReply && (
+                                              <div className="post-comment-actions">
+                                                <button type="button" onClick={() => startEditComment(reply)} disabled={isBusyReply}>수정</button>
+                                                <button type="button" onClick={() => handleDeleteComment(reply.id, comment.id)} disabled={isBusyReply}>삭제</button>
+                                              </div>
+                                            )}
+                                          </div>
+
+                                          {isEditingReply ? (
+                                            <div className="post-comment-edit">
+                                              <textarea
+                                                value={editingContent}
+                                                onChange={(e) => setEditingContent(e.target.value)}
+                                                maxLength={1000}
+                                              />
+                                              <div className="post-comment-edit-actions">
+                                                <button
+                                                  type="button"
+                                                  onClick={() => handleUpdateComment(reply.id)}
+                                                  disabled={isBusyReply || !editingContent.trim()}
+                                                >
+                                                  저장
+                                                </button>
+                                                <button type="button" onClick={cancelEditComment} disabled={isBusyReply}>취소</button>
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <p className={`post-comment-content ${reply.isDeleted ? 'deleted' : ''}`}>
+                                              {reply.isDeleted ? '삭제된 댓글입니다.' : reply.content}
+                                            </p>
+                                          )}
+                                        </li>
+                                      );
+                                    })}
+                                  </ul>
+                                )}
+
+                                {!comment.isDeleted && (
+                                  <div className="post-reply-form">
+                                    <textarea
+                                      value={replyInput}
+                                      onChange={(e) => setReplyInputsByCommentId((prev) => ({ ...prev, [comment.id]: e.target.value }))}
+                                      placeholder={isAuthenticated ? '답글을 입력하세요.' : '로그인 후 답글을 작성할 수 있습니다.'}
+                                      disabled={!isAuthenticated || isReplySubmitting}
+                                      maxLength={1000}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => handleCreateReply(comment.id)}
+                                      disabled={!isAuthenticated || isReplySubmitting || !replyInput.trim()}
+                                    >
+                                      {isReplySubmitting ? '등록 중...' : '답글 등록'}
+                                    </button>
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
                         )}
                       </li>
                     );

@@ -52,7 +52,7 @@ export const API_CONFIG = {
 export const UPLOAD_CONFIG = {
   // 프로필 이미지 최대 크기 (바이트)
   maxProfileImageSize: parseInt(
-    import.meta.env.VITE_MAX_PROFILE_IMAGE_SIZE || '5242880', // 5MB
+    import.meta.env.VITE_MAX_PROFILE_IMAGE_SIZE || '10485760', // 10MB
     10
   ),
 
