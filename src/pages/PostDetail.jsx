@@ -35,6 +35,20 @@ function PostDetail() {
     accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
   ), [accessToken]);
 
+  const getPostCommentCount = useCallback((targetPost) => (
+    Number(targetPost?.commentCount ?? targetPost?.commentsCount ?? targetPost?.commentCnt ?? 0) || 0
+  ), []);
+
+  const withPostCommentCount = useCallback((targetPost, nextCount) => {
+    if (!targetPost) return targetPost;
+    return {
+      ...targetPost,
+      commentCount: nextCount,
+      commentsCount: nextCount,
+      commentCnt: nextCount,
+    };
+  }, []);
+
   const normalizeComment = useCallback((comment) => {
     if (!comment || typeof comment !== 'object') return comment;
 
@@ -107,7 +121,11 @@ function PostDetail() {
         ? payload
         : (Array.isArray(payload?.content) ? payload.content : []);
 
-      setComments(content.map(normalizeComment));
+      const normalizedComments = content.map(normalizeComment);
+      setComments(normalizedComments);
+      if (normalizedComments.length === 0) {
+        setPost((prev) => (prev ? withPostCommentCount(prev, 0) : prev));
+      }
     } catch (err) {
       console.error('댓글 목록 조회 실패:', err);
       setCommentsError('댓글을 불러오는데 실패했습니다.');
@@ -115,7 +133,7 @@ function PostDetail() {
     } finally {
       setIsCommentsLoading(false);
     }
-  }, [id, getAuthHeaders, normalizeComment]);
+  }, [id, getAuthHeaders, normalizeComment, withPostCommentCount]);
 
   useEffect(() => {
     fetchComments();
@@ -275,7 +293,7 @@ function PostDetail() {
       }
 
       setPost((prev) => (
-        prev ? { ...prev, commentCount: (Number(prev.commentCount) || 0) + 1 } : prev
+        prev ? withPostCommentCount(prev, getPostCommentCount(prev) + 1) : prev
       ));
       setCommentInput('');
     } catch (err) {
@@ -357,8 +375,9 @@ function PostDetail() {
         await fetchComments();
       }
       setPost((prev) => (
-        prev ? { ...prev, commentCount: Math.max(0, (Number(prev.commentCount) || 0) - 1) } : prev
+        prev ? withPostCommentCount(prev, Math.max(0, getPostCommentCount(prev) - 1)) : prev
       ));
+      await fetchPost();
     } catch (err) {
       console.error('댓글 삭제 실패:', err);
       alert('댓글 삭제에 실패했습니다.');
@@ -437,7 +456,7 @@ function PostDetail() {
         comment.id === commentId ? { ...comment, replyCount: (Number(comment.replyCount) || 0) + 1 } : comment
       )));
       setPost((prev) => (
-        prev ? { ...prev, commentCount: (Number(prev.commentCount) || 0) + 1 } : prev
+        prev ? withPostCommentCount(prev, getPostCommentCount(prev) + 1) : prev
       ));
       setReplyInputsByCommentId((prev) => ({ ...prev, [commentId]: '' }));
       setIsRepliesVisibleByCommentId((prev) => ({ ...prev, [commentId]: true }));
@@ -462,6 +481,7 @@ function PostDetail() {
 
   const authorName = post?.author?.name || post?.userName || '알 수 없음';
   const authorImage = post?.author?.profileImage || post?.userProfileImage || null;
+  const totalCommentCount = getPostCommentCount(post);
   const isOwner = user && post && (
     user.id === post.userId ||
     user.id === post.author?.id ||
@@ -534,7 +554,7 @@ function PostDetail() {
               >
                 {post.liked ?? post.isLiked ? '❤️' : '🤍'} {post.likeCount || 0}
               </button>
-              <span className="post-detail-stat">💬 {Math.max(Number(post.commentCount) || 0, comments.length)}</span>
+              <span className="post-detail-stat">💬 {totalCommentCount}</span>
               <span className="post-detail-stat">👁 {post.viewCount || 0}</span>
             </div>
 
