@@ -8,10 +8,13 @@ import { useAuth } from '../hooks/useAuth';
 import { API_CONFIG } from '../config';
 import './PostDetail.css';
 
-function PostDetail() {
+function PostDetail({ postType = 'post' }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, accessToken, isAuthenticated } = useAuth();
+  const isNoticeMode = postType === 'notice';
+  const detailEndpoint = isNoticeMode ? API_CONFIG.endpoints.notices : API_CONFIG.endpoints.posts;
+  const listPath = isNoticeMode ? '/notices' : '/posts';
 
   const [post, setPost] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,7 +79,7 @@ function PostDetail() {
     setError(null);
 
     try {
-      const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.posts}/${id}`;
+      const url = `${API_CONFIG.baseUrl}${detailEndpoint}/${id}`;
       const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
 
       const response = await axios.get(url, {
@@ -99,7 +102,7 @@ function PostDetail() {
     } finally {
       setIsLoading(false);
     }
-  }, [id, accessToken]);
+  }, [id, accessToken, detailEndpoint]);
 
   useEffect(() => {
     fetchPost();
@@ -150,7 +153,7 @@ function PostDetail() {
       });
 
       alert('게시글이 삭제되었습니다.');
-      navigate('/posts');
+      navigate(listPath);
     } catch (err) {
       console.error('게시글 삭제 실패:', err);
       alert('게시글 삭제에 실패했습니다.');
@@ -506,7 +509,7 @@ function PostDetail() {
         ) : error ? (
           <div className="post-detail-error">
             <p>{error}</p>
-            <button onClick={() => navigate('/posts')} className="back-button">목록으로 돌아가기</button>
+            <button onClick={() => navigate(listPath)} className="back-button">목록으로 돌아가기</button>
           </div>
         ) : post ? (
           <div className="post-detail-card">
@@ -760,7 +763,7 @@ function PostDetail() {
             )}
 
             <div className="post-detail-footer">
-              <button onClick={() => navigate('/posts')} className="back-button">목록으로</button>
+              <button onClick={() => navigate(listPath)} className="back-button">목록으로</button>
             </div>
           </div>
         ) : null}

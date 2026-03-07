@@ -23,6 +23,9 @@ function App() {
           <Route path="/posts" element={<PostList />} />
           <Route path="/posts/create" element={<PostCreate />} />
           <Route path="/posts/:id" element={<PostDetail />} />
+          <Route path="/notices" element={<PostList mode="notices" />} />
+          <Route path="/notices/create" element={<PostCreate postType="notice" />} />
+          <Route path="/notices/:id" element={<PostDetail postType="notice" />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

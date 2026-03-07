@@ -8,6 +8,12 @@ function GNB() {
   const location = useLocation();
   const { user, isAuthenticated, isLoading, logout } = useAuth();
 
+  const handleAuthRequiredNav = (e) => {
+    if (isAuthenticated) return;
+    e.preventDefault();
+    alert('로그인 후, 이용할 수 있습니다.');
+  };
+
   const handleLogout = async () => {
     if (window.confirm('로그아웃 하시겠습니까?')) {
       try {
@@ -30,9 +36,22 @@ function GNB() {
             <span className="gnb-label">HOME</span>
           </Link>
 
-          <Link to="/posts" className={`gnb-link ${location.pathname.startsWith('/posts') ? 'active' : ''}`}>
+          <Link
+            to="/posts"
+            className={`gnb-link ${location.pathname.startsWith('/posts') ? 'active' : ''}`}
+            onClick={handleAuthRequiredNav}
+          >
             <span className="gnb-icon" aria-hidden="true">{'\u{1F4DD}'}</span>
             <span className="gnb-label">게시글</span>
+          </Link>
+
+          <Link
+            to="/notices"
+            className={`gnb-link ${location.pathname.startsWith('/notices') ? 'active' : ''}`}
+            onClick={handleAuthRequiredNav}
+          >
+            <span className="gnb-icon" aria-hidden="true">{'\u{1F514}'}</span>
+            <span className="gnb-label">알림글</span>
           </Link>
         </div>
 

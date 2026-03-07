@@ -18,7 +18,7 @@ import {
  * @param {string} accessToken - JWT 액세스 토큰
  * @returns {Object} 게시글 폼 관련 상태 및 함수
  */
-export function usePostForm(accessToken) {
+export function usePostForm(accessToken, { postType = 'post' } = {}) {
   // ==========================================
   // 상태 정의
   // ==========================================
@@ -120,6 +120,11 @@ export function usePostForm(accessToken) {
 
     try {
       let response;
+      const isNotice = postType === 'notice';
+      const postEndpoint = isNotice ? API_CONFIG.endpoints.notices : API_CONFIG.endpoints.posts;
+      const postWithImagesEndpoint = isNotice
+        ? API_CONFIG.endpoints.noticesWithImages
+        : API_CONFIG.endpoints.postsWithImages;
 
       if (selectedImages.length > 0) {
         // 이미지가 있는 경우: multipart/form-data로 전송
@@ -134,14 +139,14 @@ export function usePostForm(accessToken) {
           formData.append('images', file);
         });
 
-        const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.postsWithImages}`;
+        const url = `${API_CONFIG.baseUrl}${postWithImagesEndpoint}`;
         response = await axios.post(url, formData, {
           headers: { 'Authorization': `Bearer ${accessToken}` },
           withCredentials: true
         });
       } else {
         // 텍스트만: JSON으로 전송
-        const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.posts}`;
+        const url = `${API_CONFIG.baseUrl}${postEndpoint}`;
         response = await axios.post(url, { content, visibility }, {
           headers: {
             'Content-Type': 'application/json',

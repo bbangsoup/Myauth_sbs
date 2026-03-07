@@ -36,7 +36,7 @@ const normalizePostStats = (post) => {
   };
 };
 
-export function usePosts(accessToken, { myPostsOnly = false } = {}) {
+export function usePosts(accessToken, { myPostsOnly = false, noticesOnly = false } = {}) {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -46,9 +46,9 @@ export function usePosts(accessToken, { myPostsOnly = false } = {}) {
     setError(null);
 
     try {
-      const endpoint = myPostsOnly
-        ? API_CONFIG.endpoints.myPosts
-        : API_CONFIG.endpoints.posts;
+      const endpoint = noticesOnly
+        ? API_CONFIG.endpoints.notices
+        : (myPostsOnly ? API_CONFIG.endpoints.myPosts : API_CONFIG.endpoints.posts);
 
       const url = `${API_CONFIG.baseUrl}${endpoint}`;
       const headers = {};
@@ -77,7 +77,7 @@ export function usePosts(accessToken, { myPostsOnly = false } = {}) {
     } finally {
       setIsLoading(false);
     }
-  }, [accessToken, myPostsOnly]);
+  }, [accessToken, myPostsOnly, noticesOnly]);
 
   useEffect(() => {
     fetchPosts();

@@ -31,6 +31,45 @@
   margin: 0;
 }
 
+.post-list-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.post-list-type-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.post-list-type-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 66px;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s;
+}
+
+.post-list-type-link:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.post-list-type-link.active {
+  background: rgba(102, 126, 234, 0.45);
+  color: #fff;
+}
+
 /* 새 글 작성 버튼 */
 .post-create-button {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -260,6 +299,17 @@
 @media (max-width: 768px) {
   .post-list-container {
     padding: 80px 12px 60px;
+  }
+
+  .post-list-header {
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+
+  .post-list-title-wrap {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.45rem;
   }
 
   .post-list-header h1 {

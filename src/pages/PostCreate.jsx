@@ -16,9 +16,21 @@ import './PostCreate.css';
  * - 이미지 첨부 (다중 선택 가능)
  * - 이미지 미리보기 및 개별 삭제
  */
-function PostCreate() {
+function PostCreate({ postType = 'post' }) {
   const navigate = useNavigate();
-  const { accessToken, isAuthenticated } = useAuth();
+  const { user, accessToken, isAuthenticated } = useAuth();
+  const isNoticeMode = postType === 'notice';
+  const canWriteNotice = Boolean(
+    user && (user.role === 'ROLE_ADMIN' || user.isSuperUser === true || user.is_super_user === true)
+  );
+  const canCreate = isNoticeMode ? canWriteNotice : isAuthenticated;
+  const listPath = isNoticeMode ? '/notices' : '/posts';
+  const pageTitle = isNoticeMode ? '새 알림글 작성' : '새 게시글 작성';
+  const successMessage = isNoticeMode ? '알림글이 작성되었습니다!' : '게시글이 작성되었습니다!';
+  const failMessage = isNoticeMode ? '알림글 작성에 실패했습니다. 다시 시도해주세요.' : '게시글 작성에 실패했습니다. 다시 시도해주세요.';
+  const authMessage = isNoticeMode
+    ? '알림글을 작성하려면 관리자 권한이 필요합니다.'
+    : '게시글을 작성하려면 로그인이 필요합니다.';
 
   // 게시글 작성 폼 커스텀 훅
   const {
@@ -33,7 +45,7 @@ function PostCreate() {
     handleImageSelect,
     removeImage,
     submitPost,
-  } = usePostForm(accessToken);
+  } = usePostForm(accessToken, { postType });
 
   /**
    * 폼 제출 핸들러
@@ -45,11 +57,11 @@ function PostCreate() {
     try {
       const success = await submitPost();
       if (success) {
-        alert('게시글이 작성되었습니다!');
-        navigate('/posts');
+        alert(successMessage);
+        navigate(listPath);
       }
     } catch (err) {
-      alert('게시글 작성에 실패했습니다. 다시 시도해주세요.');
+      alert(failMessage);
     }
   };
 
@@ -66,14 +78,14 @@ function PostCreate() {
   };
 
   // 로그인하지 않은 사용자는 접근 불가
-  if (!isAuthenticated) {
+  if (!canCreate) {
     return (
       <>
         <GNB />
         <div className="post-create-container">
           <div className="post-create-card">
             <p className="post-create-auth-message">
-              게시글을 작성하려면 로그인이 필요합니다.
+              {authMessage}
             </p>
           </div>
         </div>
@@ -87,7 +99,7 @@ function PostCreate() {
       <GNB />
       <div className="post-create-container">
         <div className="post-create-card">
-          <h1>새 게시글 작성</h1>
+          <h1>{pageTitle}</h1>
 
           <form onSubmit={handleSubmit}>
             {/* 게시글 내용 입력 */}
@@ -171,7 +183,7 @@ function PostCreate() {
               <button
                 type="button"
                 className="cancel-button"
-                onClick={() => navigate('/posts')}
+                onClick={() => navigate(listPath)}
               >
                 취소
               </button>

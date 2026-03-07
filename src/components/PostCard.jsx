@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useAuth } from '../hooks/useAuth';
 import { API_CONFIG } from '../config';
 
-function PostCard({ post }) {
+function PostCard({ post, detailPathPrefix = '/posts' }) {
   const { user, isAuthenticated, accessToken } = useAuth();
 
   const [liked, setLiked] = useState(Boolean(post?.liked ?? post?.isLiked));
@@ -136,7 +136,7 @@ function PostCard({ post }) {
   );
 
   return (
-    <Link to={`/posts/${post.id}`} className="post-card">
+    <Link to={`${detailPathPrefix}/${post.id}`} className="post-card">
       <div className="post-card-header">
         <div className="post-card-author">
           {authorImage ? (

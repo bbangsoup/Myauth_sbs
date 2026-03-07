@@ -37,6 +37,8 @@ export const API_CONFIG = {
     posts: '/posts',
     postsWithImages: '/posts/with-images',
     myPosts: '/posts/me',
+    notices: '/notices',
+    noticesWithImages: '/notices/with-images',
     comments: '/comments',
 
     // OAuth (카카오) - /api/auth 경로를 통해 백엔드로 프록시

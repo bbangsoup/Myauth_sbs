@@ -16,15 +16,24 @@ import './PostList.css';
  * - 내 게시글 탭 전환
  * - 로그인한 사용자만 게시글 작성 가능
  */
-function PostList() {
-  const { isAuthenticated, accessToken } = useAuth();
+function PostList({ mode = 'posts' }) {
+  const { user, isAuthenticated, accessToken } = useAuth();
+  const isNoticeMode = mode === 'notices';
+  const canWriteNotice = Boolean(
+    user && (user.role === 'ROLE_ADMIN' || user.isSuperUser === true || user.is_super_user === true)
+  );
+  const canCreate = isNoticeMode ? canWriteNotice : isAuthenticated;
+  const createPath = isNoticeMode ? '/notices/create' : '/posts/create';
+  const detailPathPrefix = isNoticeMode ? '/notices' : '/posts';
+  const pageTitle = isNoticeMode ? '알림글' : '게시글';
 
   // 탭 상태: 'all' (전체 피드) 또는 'mine' (내 게시글)
   const [activeTab, setActiveTab] = useState('all');
 
   // 게시글 목록 조회 (탭에 따라 다른 API 호출)
   const { posts, isLoading, error, fetchPosts } = usePosts(accessToken, {
-    myPostsOnly: activeTab === 'mine'
+    myPostsOnly: !isNoticeMode && activeTab === 'mine',
+    noticesOnly: isNoticeMode,
   });
 
   // 탭 변경 핸들러
@@ -38,16 +47,26 @@ function PostList() {
       <div className="post-list-container">
         {/* 헤더: 제목 + 작성 버튼 */}
         <div className="post-list-header">
-          <h1>게시글</h1>
-          {isAuthenticated && (
-            <Link to="/posts/create" className="post-create-button">
+          <div className="post-list-title-wrap">
+            <h1>{pageTitle}</h1>
+            <div className="post-list-type-switch">
+              <Link to="/posts" className={`post-list-type-link ${!isNoticeMode ? 'active' : ''}`}>
+                게시글
+              </Link>
+              <Link to="/notices" className={`post-list-type-link ${isNoticeMode ? 'active' : ''}`}>
+                알림글
+              </Link>
+            </div>
+          </div>
+          {canCreate && (
+            <Link to={createPath} className="post-create-button">
               + 새 글 작성
             </Link>
           )}
         </div>
 
         {/* 탭 메뉴 */}
-        {isAuthenticated && (
+        {!isNoticeMode && isAuthenticated && (
           <div className="post-tabs">
             <button
               className={`post-tab ${activeTab === 'all' ? 'active' : ''}`}
@@ -77,16 +96,20 @@ function PostList() {
             </div>
           ) : posts.length === 0 ? (
             <div className="post-list-empty">
-              <p>{activeTab === 'mine' ? '작성한 게시글이 없습니다.' : '게시글이 없습니다.'}</p>
-              {isAuthenticated && (
-                <Link to="/posts/create" className="post-create-link">
-                  첫 게시글을 작성해보세요!
+              <p>
+                {isNoticeMode
+                  ? '등록된 알림글이 없습니다.'
+                  : (activeTab === 'mine' ? '작성한 게시글이 없습니다.' : '게시글이 없습니다.')}
+              </p>
+              {canCreate && (
+                <Link to={createPath} className="post-create-link">
+                  {isNoticeMode ? '첫 알림글을 작성해보세요!' : '첫 게시글을 작성해보세요!'}
                 </Link>
               )}
             </div>
           ) : (
             posts.map(post => (
-              <PostCard key={post.id} post={post} />
+              <PostCard key={post.id} post={post} detailPathPrefix={detailPathPrefix} />
             ))
           )}
         </div>
