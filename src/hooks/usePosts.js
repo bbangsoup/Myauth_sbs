@@ -2,6 +2,31 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { API_CONFIG } from '../config';
 
+const toSafeNumber = (value, fallback = 0) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const pickFirstDefined = (...values) => values.find((value) => value !== undefined && value !== null);
+
+const normalizePostStats = (post) => {
+  if (!post || typeof post !== 'object') return post;
+
+  const normalizedViewCount = pickFirstDefined(
+    post.viewCount,
+    post.views,
+    post.viewCnt,
+    post.viewsCount,
+    post.readCount,
+    post.view_count
+  );
+
+  return {
+    ...post,
+    viewCount: toSafeNumber(normalizedViewCount, 0),
+  };
+};
+
 /**
  * usePosts 커스텀 훅
  *
@@ -59,7 +84,7 @@ export function usePosts(accessToken, { myPostsOnly = false } = {}) {
         const postData = Array.isArray(response.data.data)
           ? response.data.data
           : response.data.data.content || [];
-        setPosts(postData);
+        setPosts(postData.map(normalizePostStats));
       } else {
         setPosts([]);
       }
