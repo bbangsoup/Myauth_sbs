@@ -230,3 +230,19 @@
     align-self: flex-end;
   }
 }
+
+.post-like-button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.post-like-button.active {
+  color: #ff6b81;
+}
+
+.post-like-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

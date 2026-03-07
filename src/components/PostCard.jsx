@@ -1,15 +1,22 @@
+﻿import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 
-/**
- * PostCard 컴포넌트
- *
- * 게시글 목록에서 각 게시글을 카드 형태로 표시합니다.
- * 클릭하면 게시글 상세 페이지로 이동합니다.
- *
- * @param {Object} props.post - 게시글 데이터 (PostListResponse 또는 PostResponse)
- */
+import { useAuth } from '../hooks/useAuth';
+import { API_CONFIG } from '../config';
+
 function PostCard({ post }) {
-  // 작성 시간을 "몇 분 전" 형태로 변환
+  const { isAuthenticated, accessToken } = useAuth();
+
+  const [liked, setLiked] = useState(Boolean(post?.liked ?? post?.isLiked));
+  const [likeCount, setLikeCount] = useState(post?.likeCount ?? 0);
+  const [isLikeLoading, setIsLikeLoading] = useState(false);
+
+  useEffect(() => {
+    setLiked(Boolean(post?.liked ?? post?.isLiked));
+    setLikeCount(post?.likeCount ?? 0);
+  }, [post?.id, post?.liked, post?.isLiked, post?.likeCount]);
+
   const formatTime = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -26,56 +33,138 @@ function PostCard({ post }) {
     return date.toLocaleDateString('ko-KR');
   };
 
-  // 게시글 내용 미리보기 (최대 150자)
+  const handleToggleLike = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      alert('로그인 후 좋아요를 사용할 수 있습니다.');
+      return;
+    }
+
+    if (isLikeLoading) return;
+
+    setIsLikeLoading(true);
+
+    const wasLiked = liked;
+    const targetLiked = !wasLiked;
+
+    try {
+      const url = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.posts}/${post.id}/like`;
+      const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+
+      let response;
+      try {
+        response = wasLiked
+          ? await axios.delete(url, { headers, withCredentials: true })
+          : await axios.post(url, {}, { headers, withCredentials: true });
+      } catch (primaryError) {
+        if (primaryError.response?.status === 409) {
+          // Local liked state and server state are out of sync: retry with opposite action.
+          response = wasLiked
+            ? await axios.post(url, {}, { headers, withCredentials: true })
+            : await axios.delete(url, { headers, withCredentials: true });
+        } else {
+          throw primaryError;
+        }
+      }
+
+      const responseData = response?.data?.data;
+
+      if (typeof responseData?.liked === 'boolean') {
+        setLiked(responseData.liked);
+      } else {
+        setLiked(targetLiked);
+      }
+
+      if (typeof responseData?.likeCount === 'number') {
+        setLikeCount(responseData.likeCount);
+      } else {
+        setLikeCount((prev) => (targetLiked ? prev + 1 : Math.max(0, prev - 1)));
+      }
+    } catch (error) {
+      if (error.response?.status === 409) {
+        try {
+          const detailUrl = `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.posts}/${post.id}`;
+          const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+          const detailResponse = await axios.get(detailUrl, { headers, withCredentials: true });
+          const latest = detailResponse.data?.data || detailResponse.data;
+          const syncedLiked = latest?.liked ?? latest?.isLiked;
+
+          if (typeof syncedLiked === 'boolean') {
+            setLiked(syncedLiked);
+          } else {
+            // Backend detail response may omit liked; infer from conflict direction.
+            setLiked(targetLiked);
+          }
+
+          if (typeof latest?.likeCount === 'number') {
+            setLikeCount(latest.likeCount);
+          } else {
+            setLikeCount((prev) => (targetLiked ? prev + 1 : Math.max(0, prev - 1)));
+          }
+          return;
+        } catch (syncError) {
+          console.error('좋아요 상태 재동기화 실패:', syncError);
+          setLiked(targetLiked);
+          setLikeCount((prev) => (targetLiked ? prev + 1 : Math.max(0, prev - 1)));
+          return;
+        }
+      }
+
+      console.error('좋아요 처리 실패:', error);
+      alert('좋아요 처리에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setIsLikeLoading(false);
+    }
+  };
+
   const previewContent = post.content?.length > 150
-    ? post.content.substring(0, 150) + '...'
+    ? `${post.content.substring(0, 150)}...`
     : post.content;
 
-  // 작성자 정보 (author 객체 또는 직접 필드)
   const authorName = post.author?.name || post.userName || '알 수 없음';
   const authorImage = post.author?.profileImage || post.userProfileImage || null;
 
   return (
     <Link to={`/posts/${post.id}`} className="post-card">
-      {/* 작성자 정보 헤더 */}
       <div className="post-card-header">
         <div className="post-card-author">
           {authorImage ? (
             <img src={authorImage} alt={authorName} className="post-card-avatar" />
           ) : (
-            <div className="post-card-avatar-placeholder">
-              {authorName.charAt(0)}
-            </div>
+            <div className="post-card-avatar-placeholder">{authorName.charAt(0)}</div>
           )}
           <span className="post-card-author-name">{authorName}</span>
         </div>
         <span className="post-card-time">{formatTime(post.createdAt)}</span>
       </div>
 
-      {/* 게시글 내용 */}
       <div className="post-card-content">
         <p>{previewContent}</p>
       </div>
 
-      {/* 썸네일 이미지 (있는 경우) */}
       {(post.thumbnailUrl || (post.images && post.images.length > 0)) && (
         <div className="post-card-thumbnail">
           <img
             src={post.thumbnailUrl || post.images[0]?.imageUrl || post.images[0]?.thumbnailUrl}
             alt="게시글 이미지"
           />
-          {/* 이미지 개수 표시 (2개 이상인 경우) */}
           {(post.imageCount > 1 || (post.images && post.images.length > 1)) && (
-            <span className="post-card-image-count">
-              +{(post.imageCount || post.images?.length) - 1}
-            </span>
+            <span className="post-card-image-count">+{(post.imageCount || post.images?.length) - 1}</span>
           )}
         </div>
       )}
 
-      {/* 하단 통계 (좋아요, 댓글, 조회수) */}
       <div className="post-card-footer">
-        <span className="post-card-stat">♥ {post.likeCount || 0}</span>
+        <button
+          type="button"
+          className={`post-card-stat post-card-like-button ${liked ? 'active' : ''}`}
+          onClick={handleToggleLike}
+          disabled={isLikeLoading}
+        >
+          {liked ? '❤️' : '🤍'} {likeCount}
+        </button>
         <span className="post-card-stat">💬 {post.commentCount || 0}</span>
         <span className="post-card-stat">👁 {post.viewCount || 0}</span>
       </div>

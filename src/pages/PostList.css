@@ -271,3 +271,19 @@
     font-size: 0.8rem;
   }
 }
+
+.post-card-like-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.post-card-like-button.active {
+  color: #ff6b81;
+}
+
+.post-card-like-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
