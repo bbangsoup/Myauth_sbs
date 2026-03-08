@@ -44,6 +44,16 @@
   gap: 0.8rem;
 }
 
+.post-detail-author-dm {
+  cursor: pointer;
+}
+
+.post-detail-author-dm:focus-visible {
+  outline: 2px solid rgba(79, 195, 247, 0.9);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
 /* 작성자 프로필 이미지 */
 .post-detail-avatar {
   width: 44px;
@@ -152,6 +162,7 @@
    ========================================== */
 .post-detail-stats {
   display: flex;
+  align-items: center;
   gap: 1.2rem;
   padding: 1rem 0;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -248,6 +259,7 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
 
 .post-comments-section {
   margin-top: 1.2rem;
@@ -511,4 +523,66 @@
 .post-reply-form button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.dm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.dm-modal {
+  width: min(420px, 100%);
+  background: rgba(24, 24, 24, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.dm-modal p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.dm-window h3 {
+  margin: 0 0 0.7rem;
+  font-size: 1rem;
+  color: #fff;
+}
+
+.dm-window textarea {
+  width: 100%;
+  min-height: 120px;
+  box-sizing: border-box;
+  padding: 0.65rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  resize: vertical;
+}
+
+.dm-modal-actions {
+  margin-top: 0.85rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.dm-modal-actions button {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
 }

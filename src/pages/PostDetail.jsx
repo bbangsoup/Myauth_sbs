@@ -6,6 +6,7 @@ import GNB from '../components/Gnb';
 import Footer from '../components/Footer';
 import { useAuth } from '../hooks/useAuth';
 import { API_CONFIG } from '../config';
+import { appendDmMessage, upsertDmRoom } from '../utils/dmStorage';
 import './PostDetail.css';
 
 function PostDetail({ postType = 'post' }) {
@@ -33,6 +34,10 @@ function PostDetail({ postType = 'post' }) {
   const [isRepliesLoadingByCommentId, setIsRepliesLoadingByCommentId] = useState({});
   const [replyInputsByCommentId, setReplyInputsByCommentId] = useState({});
   const [isReplySubmittingByCommentId, setIsReplySubmittingByCommentId] = useState({});
+  const [isDmConfirmOpen, setIsDmConfirmOpen] = useState(false);
+  const [isDmWindowOpen, setIsDmWindowOpen] = useState(false);
+  const [dmMessage, setDmMessage] = useState('');
+  const [isDmSending, setIsDmSending] = useState(false);
 
   const getAuthHeaders = useCallback(() => (
     accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
@@ -498,6 +503,118 @@ function PostDetail({ postType = 'post' }) {
     )
   );
 
+  useEffect(() => {
+    setIsDmConfirmOpen(false);
+    setIsDmWindowOpen(false);
+    setDmMessage('');
+    setIsDmSending(false);
+  }, [id]);
+
+  const handleOpenDmConfirm = () => {
+    if (!post || isOwner || isDmWindowOpen) return;
+    setIsDmConfirmOpen(true);
+  };
+
+  const handleAuthorDmKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleOpenDmConfirm();
+    }
+  };
+
+  const handleDmNo = () => {
+    setIsDmConfirmOpen(false);
+  };
+
+  const handleDmYes = () => {
+    setIsDmConfirmOpen(false);
+    setDmMessage('');
+    setIsDmWindowOpen(true);
+  };
+
+  const handleDmSend = async () => {
+    if (!isAuthenticated) {
+      alert('로그인 후 DM을 보낼 수 있습니다.');
+      return;
+    }
+
+    const content = dmMessage.trim();
+    if (!content) {
+      alert('메시지 내용을 입력해주세요.');
+      return;
+    }
+
+    const targetUserId = post?.author?.id || post?.userId || null;
+    if (!targetUserId) {
+      alert('대상 사용자 정보를 찾을 수 없습니다.');
+      return;
+    }
+
+    setIsDmSending(true);
+    try {
+      const headers = getAuthHeaders();
+      const roomResponse = await axios.post(
+        `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.dmRooms}`,
+        { targetUserId },
+        { headers, withCredentials: true }
+      );
+
+      const roomId = roomResponse?.data?.data?.roomId;
+      const roomData = roomResponse?.data?.data;
+      if (!roomId) {
+        throw new Error('DM 방 ID를 확인할 수 없습니다.');
+      }
+
+      const messageResponse = await axios.post(
+        `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.dmRooms}/${roomId}/messages`,
+        { content },
+        { headers, withCredentials: true }
+      );
+
+      const sentMessage = messageResponse?.data?.data;
+      if (sentMessage?.messageId) {
+        appendDmMessage(roomId, {
+          messageId: sentMessage.messageId,
+          roomId: sentMessage.roomId || roomId,
+          senderId: sentMessage.senderId || user?.id,
+          senderName: sentMessage.senderName || user?.name || '',
+          senderProfileImage: sentMessage.senderProfileImage || user?.profileImage || null,
+          content: sentMessage.content || content,
+          createdAt: sentMessage.createdAt || new Date().toISOString(),
+        });
+      }
+      upsertDmRoom({
+        roomId,
+        user1Id: roomData?.user1Id ?? Math.min(Number(user?.id || 0), Number(targetUserId)),
+        user2Id: roomData?.user2Id ?? Math.max(Number(user?.id || 0), Number(targetUserId)),
+        lastMessageId: sentMessage?.messageId ?? roomData?.lastMessageId ?? null,
+        lastMessageAt: sentMessage?.createdAt ?? roomData?.lastMessageAt ?? new Date().toISOString(),
+        peerByUserId: {
+          [user?.id]: {
+            id: targetUserId,
+            name: authorName,
+            profileImage: authorImage,
+          },
+          [targetUserId]: {
+            id: user?.id,
+            name: user?.name,
+            profileImage: user?.profileImage || null,
+          },
+        },
+      });
+
+      alert('메시지를 전송했습니다.');
+      setDmMessage('');
+      setIsDmWindowOpen(false);
+    } catch (err) {
+      console.error('DM 전송 실패:', err);
+      const errorMessage = err.response?.data?.message || err.message || 'DM 전송에 실패했습니다.';
+      alert(errorMessage);
+    } finally {
+      setIsDmSending(false);
+    }
+  };
+
   return (
     <>
       <GNB />
@@ -514,7 +631,14 @@ function PostDetail({ postType = 'post' }) {
         ) : post ? (
           <div className="post-detail-card">
             <div className="post-detail-header">
-              <div className="post-detail-author">
+              <div
+                className={`post-detail-author ${!isOwner ? 'post-detail-author-dm' : ''}`}
+                onClick={!isOwner ? handleOpenDmConfirm : undefined}
+                onKeyDown={!isOwner ? handleAuthorDmKeyDown : undefined}
+                role={!isOwner ? 'button' : undefined}
+                tabIndex={!isOwner ? 0 : undefined}
+                title={!isOwner ? '클릭하여 DM 보내기' : undefined}
+              >
                 {authorImage ? (
                   <img src={authorImage} alt={authorName} className="post-detail-avatar" />
                 ) : (
@@ -767,6 +891,43 @@ function PostDetail({ postType = 'post' }) {
             </div>
           </div>
         ) : null}
+
+        {isDmConfirmOpen && (
+          <div className="dm-modal-overlay" role="presentation">
+            <div className="dm-modal" role="dialog" aria-modal="true" aria-label="DM 안내">
+              <p>DM을 보내시겠습니까?</p>
+              <div className="dm-modal-actions">
+                <button type="button" onClick={handleDmYes}>예</button>
+                <button type="button" onClick={handleDmNo}>아니오</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isDmWindowOpen && (
+          <div className="dm-modal-overlay" role="presentation">
+            <div className="dm-modal dm-window" role="dialog" aria-modal="true" aria-label="DM 창">
+              <h3>{authorName} 님에게 DM</h3>
+              <textarea
+                value={dmMessage}
+                onChange={(e) => setDmMessage(e.target.value)}
+                placeholder="메시지를 입력하세요."
+                maxLength={1000}
+                disabled={isDmSending}
+              />
+              <div className="dm-modal-actions">
+                <button
+                  type="button"
+                  onClick={handleDmSend}
+                  disabled={isDmSending || !dmMessage.trim()}
+                >
+                  {isDmSending ? '전송 중...' : '보내기'}
+                </button>
+                <button type="button" onClick={() => setIsDmWindowOpen(false)} disabled={isDmSending}>닫기</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       <Footer />
     </>

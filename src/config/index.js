@@ -40,6 +40,8 @@ export const API_CONFIG = {
     notices: '/notices',
     noticesWithImages: '/notices/with-images',
     comments: '/comments',
+    dmRooms: '/dm/rooms',
+    dmUnreadCount: '/dm/unread-count',
 
     // OAuth (카카오) - /api/auth 경로를 통해 백엔드로 프록시
     kakaoLogin: '/auth/kakao/login',
