@@ -1,6 +1,7 @@
 const DM_ROOMS_KEY = 'dm_room_registry_v1';
 const DM_LAST_READ_KEY = 'dm_last_read_v1';
 const DM_MESSAGES_KEY = 'dm_messages_registry_v1';
+const DM_READ_BOUNDARY_SHOWN_KEY = 'dm_read_boundary_shown_v1';
 
 const readJson = (key, fallback) => {
   try {
@@ -83,4 +84,20 @@ export const getDmMessages = (roomId) => {
   if (!roomId) return [];
   const registry = readJson(DM_MESSAGES_KEY, {});
   return Array.isArray(registry[roomId]) ? registry[roomId] : [];
+};
+
+
+export const hasShownDmReadBoundary = (userId, roomId) => {
+  if (!userId || !roomId) return false;
+  const registry = readJson(DM_READ_BOUNDARY_SHOWN_KEY, {});
+  return Boolean(registry?.[userId]?.[roomId]);
+};
+
+export const setShownDmReadBoundary = (userId, roomId) => {
+  if (!userId || !roomId) return;
+  const registry = readJson(DM_READ_BOUNDARY_SHOWN_KEY, {});
+  const userMap = registry[userId] || {};
+  userMap[roomId] = true;
+  registry[userId] = userMap;
+  writeJson(DM_READ_BOUNDARY_SHOWN_KEY, registry);
 };

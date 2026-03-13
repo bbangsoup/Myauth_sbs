@@ -1,5 +1,6 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import axios from 'axios';
 
 import { useAuth } from '../hooks/useAuth';
@@ -8,7 +9,9 @@ import {
   appendDmMessage,
   getDmMessages,
   getLastReadMessageId,
+  hasShownDmReadBoundary,
   setDmMessages,
+  setShownDmReadBoundary,
   setLastReadMessageId,
 } from '../utils/dmStorage';
 import './Gnb.css';
@@ -30,9 +33,12 @@ function GNB() {
   const [dmInput, setDmInput] = useState('');
   const [isDmSending, setIsDmSending] = useState(false);
 
+  const [dividerUnreadCountByRoomId, setDividerUnreadCountByRoomId] = useState({});
+
   const [dmPanelOffset, setDmPanelOffset] = useState({ x: 0, y: 0 });
   const [isDraggingDmPanel, setIsDraggingDmPanel] = useState(false);
   const dragRef = useRef({ startX: 0, startY: 0, baseX: 0, baseY: 0 });
+  const messageScrollRef = useRef(null);
 
   const myUserId = Number(user?.id || 0);
   const authHeaders = useMemo(
@@ -146,6 +152,25 @@ function GNB() {
     setDmUnreadCount(nextRooms.reduce((sum, room) => sum + (room.unreadCount || 0), 0));
   }, [authHeaders, myUserId, normalizeMessages]);
 
+  const fetchDmUnreadCount = useCallback(async () => {
+    if (!isAuthenticated || !myUserId) {
+      setDmUnreadCount(0);
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.dmUnreadCount}`, {
+        headers: authHeaders,
+        withCredentials: true,
+      });
+
+      const rawCount = Number(response?.data?.data?.unreadCount ?? response?.data?.data ?? 0);
+      setDmUnreadCount(Number.isFinite(rawCount) && rawCount > 0 ? rawCount : 0);
+    } catch (error) {
+      console.error('Failed to fetch DM unread count:', error);
+    }
+  }, [isAuthenticated, myUserId, authHeaders]);
+
   const fetchDmRooms = useCallback(async () => {
     if (!isAuthenticated || !myUserId) {
       setDmRooms([]);
@@ -169,12 +194,12 @@ function GNB() {
 
       const nextSelected = selectedRoomId && rooms.some((room) => room.roomId === selectedRoomId)
         ? selectedRoomId
-        : (rooms[0]?.roomId ?? null);
+        : null;
       setSelectedRoomId(nextSelected);
 
       await refreshUnreadCounts(rooms);
 
-      if (nextSelected) {
+      if (isDmPanelOpen && nextSelected) {
         await fetchRoomMessages(nextSelected, { markAsRead: true, size: 50 });
       }
     } catch (error) {
@@ -186,38 +211,71 @@ function GNB() {
     } finally {
       setIsDmRoomsLoading(false);
     }
-  }, [isAuthenticated, myUserId, authHeaders, normalizeRooms, selectedRoomId, refreshUnreadCounts, fetchRoomMessages]);
+  }, [isAuthenticated, myUserId, authHeaders, normalizeRooms, selectedRoomId, refreshUnreadCounts, fetchRoomMessages, isDmPanelOpen]);
 
   const selectedRoom = dmRooms.find((room) => room.roomId === selectedRoomId) || null;
+  const selectedRoomMessages = selectedRoomId ? (messagesByRoomId[selectedRoomId] || []) : [];
+  const selectedRoomUnreadCount = Number(selectedRoom?.unreadCount || 0);
+  const selectedDividerUnreadCount = Number(
+    (selectedRoomId && dividerUnreadCountByRoomId[selectedRoomId]) || 0
+  );
+
+  const firstUnreadMessageId = useMemo(() => {
+    if (selectedDividerUnreadCount <= 0 || selectedRoomMessages.length === 0) {
+      return null;
+    }
+
+    let remainingUnread = selectedDividerUnreadCount;
+    for (let index = selectedRoomMessages.length - 1; index >= 0; index -= 1) {
+      const message = selectedRoomMessages[index];
+      if (Number(message?.senderId) === myUserId) {
+        continue;
+      }
+
+      remainingUnread -= 1;
+      if (remainingUnread <= 0) {
+        return message.messageId;
+      }
+    }
+
+    return null;
+  }, [selectedRoomMessages, selectedDividerUnreadCount, myUserId]);
 
   useEffect(() => {
     setSelectedRoomId(null);
     setMessagesByRoomId({});
     setDmRooms([]);
     setDmUnreadCount(0);
+    setDividerUnreadCountByRoomId({});
     setDmInput('');
   }, [myUserId]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       fetchDmRooms();
+      fetchDmUnreadCount();
     }, 0);
 
     if (!isAuthenticated) {
       return () => window.clearTimeout(timeoutId);
     }
 
-    const intervalId = window.setInterval(fetchDmRooms, 30000);
+    const intervalId = window.setInterval(() => {
+      fetchDmRooms();
+      fetchDmUnreadCount();
+    }, 30000);
+
     return () => {
       window.clearTimeout(timeoutId);
       window.clearInterval(intervalId);
     };
-  }, [isAuthenticated, fetchDmRooms]);
+  }, [isAuthenticated, fetchDmRooms, fetchDmUnreadCount]);
 
   useEffect(() => {
     if (!isDmPanelOpen) return;
     fetchDmRooms();
-  }, [isDmPanelOpen, fetchDmRooms]);
+    fetchDmUnreadCount();
+  }, [isDmPanelOpen, fetchDmRooms, fetchDmUnreadCount]);
 
   useEffect(() => {
     if (!selectedRoomId || !isDmPanelOpen) return;
@@ -225,11 +283,27 @@ function GNB() {
   }, [selectedRoomId, isDmPanelOpen, fetchRoomMessages]);
 
   useEffect(() => {
+    if (!isDmPanelOpen || !selectedRoomId) return;
+
+    const scrollEl = messageScrollRef.current;
+    if (!scrollEl) return;
+
+    window.requestAnimationFrame(() => {
+      scrollEl.scrollTop = scrollEl.scrollHeight;
+    });
+  }, [isDmPanelOpen, selectedRoomId, selectedRoomMessages.length]);
+
+  useEffect(() => {
+    setDmPanelOffset({ x: 0, y: 0 });
+
     if (!isDmPanelOpen) {
-      setDmPanelOffset({ x: 0, y: 0 });
+      Object.keys(dividerUnreadCountByRoomId).forEach((roomId) => {
+        setShownDmReadBoundary(myUserId, Number(roomId));
+      });
+      setDividerUnreadCountByRoomId({});
       setDmInput('');
     }
-  }, [isDmPanelOpen]);
+  }, [isDmPanelOpen, dividerUnreadCountByRoomId, myUserId]);
 
   useEffect(() => {
     if (!isDraggingDmPanel) return undefined;
@@ -263,8 +337,16 @@ function GNB() {
   };
 
   const handleSelectRoom = async (roomId) => {
+    const room = dmRooms.find((item) => item.roomId === roomId);
+    const unreadBeforeRead = Number(room?.unreadCount || 0);
+
+    if (unreadBeforeRead > 0 && !hasShownDmReadBoundary(myUserId, roomId)) {
+      setDividerUnreadCountByRoomId((prev) => ({ ...prev, [roomId]: unreadBeforeRead }));
+    }
+
     setSelectedRoomId(roomId);
     await fetchRoomMessages(roomId, { markAsRead: true, size: 50 });
+    fetchDmUnreadCount();
   };
 
   const handleSendDmInPanel = async () => {
@@ -311,10 +393,18 @@ function GNB() {
     }
   };
 
-  const handleAuthRequiredNav = (event) => {
-    if (isAuthenticated) return;
+  const handleAuthRequiredNav = (event, path, requiresAuth = false) => {
     event.preventDefault();
-    alert('로그인 후, 이용할 수 있습니다.');
+
+    if (requiresAuth) {
+      const hasSavedUser = Boolean(window.localStorage.getItem('user'));
+      if (!isAuthenticated && !isLoading && !hasSavedUser) {
+        alert('\uB85C\uADF8\uC778 \uD6C4, \uC774\uC6A9\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.');
+        return;
+      }
+    }
+
+    window.location.href = path;
   };
 
   const handleLogout = async () => {
@@ -323,10 +413,10 @@ function GNB() {
     try {
       await logout();
       alert('로그아웃되었습니다.');
-      navigate('/');
     } catch (error) {
       console.error('로그아웃 처리 중 오류:', error);
-      navigate('/');
+    } finally {
+      window.location.href = '/';
     }
   };
 
@@ -334,7 +424,7 @@ function GNB() {
     <nav className="gnb">
       <div className="gnb-container">
         <div className="gnb-left">
-          <Link to="/" className={`gnb-link ${location.pathname === '/' ? 'active' : ''}`}>
+          <Link to="/" className={`gnb-link ${location.pathname === '/' ? 'active' : ''}`} onClick={(event) => handleAuthRequiredNav(event, '/', false)}>
             <span className="gnb-icon" aria-hidden="true">{'\u{1F3E0}'}</span>
             <span className="gnb-label">HOME</span>
           </Link>
@@ -342,7 +432,7 @@ function GNB() {
           <Link
             to="/posts"
             className={`gnb-link ${location.pathname.startsWith('/posts') ? 'active' : ''}`}
-            onClick={handleAuthRequiredNav}
+            onClick={(event) => handleAuthRequiredNav(event, '/posts', true)}
           >
             <span className="gnb-icon" aria-hidden="true">{'\u{1F4DD}'}</span>
             <span className="gnb-label">게시글</span>
@@ -351,7 +441,7 @@ function GNB() {
           <Link
             to="/notices"
             className={`gnb-link ${location.pathname.startsWith('/notices') ? 'active' : ''}`}
-            onClick={handleAuthRequiredNav}
+            onClick={(event) => handleAuthRequiredNav(event, '/notices', true)}
           >
             <span className="gnb-icon" aria-hidden="true">{'\u{1F514}'}</span>
             <span className="gnb-label">알림글</span>
@@ -372,7 +462,7 @@ function GNB() {
                 <span className="gnb-icon" aria-hidden="true">{'\u{1F514}'}</span>
                 <span className="gnb-label">DM</span>
                 {dmUnreadCount > 0 && (
-                  <span className="gnb-dm-badge">{dmUnreadCount > 99 ? '99+' : dmUnreadCount}</span>
+                  <span className="gnb-dm-badge unread">{dmUnreadCount > 99 ? '99+' : dmUnreadCount}</span>
                 )}
               </button>
 
@@ -393,7 +483,7 @@ function GNB() {
             </>
           ) : (
             <>
-              <Link to="/login" className="auth-link">
+              <Link to="/login" className="auth-link" onClick={(e) => { e.preventDefault(); window.location.href = "/login"; }}>
                 <span className="gnb-icon" aria-hidden="true">{'\u{1F510}'}</span>
                 <span className="gnb-label">로그인</span>
               </Link>
@@ -407,7 +497,7 @@ function GNB() {
         </div>
       </div>
 
-      {isDmPanelOpen && (
+      {isDmPanelOpen && createPortal(
         <div className="gnb-dm-panel-overlay" role="presentation" onClick={() => setIsDmPanelOpen(false)}>
           <div
             className="gnb-dm-panel"
@@ -466,17 +556,26 @@ function GNB() {
                         />
                         <div className="gnb-dm-conversation-meta">
                           <strong>{selectedRoom.opponentName}</strong>
+                          {selectedRoomUnreadCount > 0 && (
+                            <span className="gnb-dm-unread-room-badge">미읽음 {selectedRoomUnreadCount}</span>
+                          )}
                         </div>
                       </div>
                     )}
-
-                    <div className="gnb-dm-message-scroll">
-                      {(messagesByRoomId[selectedRoomId] || []).length === 0 ? (
+                    <div className="gnb-dm-message-scroll" ref={messageScrollRef}>
+                      {selectedRoomMessages.length === 0 ? (
                         <p>대화 내용이 없습니다.</p>
                       ) : (
-                        (messagesByRoomId[selectedRoomId] || []).map((message) => (
-                          <div key={message.messageId} className={`gnb-dm-message-item ${message.senderId === myUserId ? 'mine' : ''}`}>
-                            <p>{message.content}</p>
+                        selectedRoomMessages.map((message) => (
+                          <div key={message.messageId}>
+                            {firstUnreadMessageId === message.messageId && selectedDividerUnreadCount > 0 && (
+                              <div className="gnb-dm-unread-divider">
+                                <span>--여기까지 읽으셨습니다.--</span>
+                              </div>
+                            )}
+                            <div className={`gnb-dm-message-item ${message.senderId === myUserId ? 'mine' : ''}`}>
+                              <p>{message.content}</p>
+                            </div>
                           </div>
                         ))
                       )}
@@ -503,10 +602,34 @@ function GNB() {
               </section>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </nav>
   );
 }
 
 export default GNB;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

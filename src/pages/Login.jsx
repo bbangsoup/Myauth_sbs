@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -44,11 +44,9 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validateForm()) return;
 
     setIsLoading(true);
-
     try {
       const response = await axios.post(
         '/api/login',
@@ -63,13 +61,13 @@ function Login() {
 
       if (response.data.success) {
         login(response.data.data.user, response.data.data.accessToken);
-        alert(response.data.message);
-        navigate('/');
+        alert(response.data.message || '로그인되었습니다.');
+        window.location.href = '/';
       } else {
-        alert(response.data.message);
+        alert(response.data.message || '로그인에 실패했습니다.');
       }
     } catch (error) {
-      console.error('로그인 에러:', error);
+      console.error('로그인 오류:', error);
       alert('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
       setIsLoading(false);
