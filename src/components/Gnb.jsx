@@ -21,6 +21,7 @@ function GNB() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAuthenticated, isLoading, logout, accessToken } = useAuth();
+  const isHomePage = location.pathname === '/';
 
   const [dmUnreadCount, setDmUnreadCount] = useState(0);
   const [isDmPanelOpen, setIsDmPanelOpen] = useState(false);
@@ -34,6 +35,7 @@ function GNB() {
   const [isDmSending, setIsDmSending] = useState(false);
 
   const [dividerUnreadCountByRoomId, setDividerUnreadCountByRoomId] = useState({});
+  const [isHomeGnbVisible, setIsHomeGnbVisible] = useState(!isHomePage);
 
   const [dmPanelOffset, setDmPanelOffset] = useState({ x: 0, y: 0 });
   const [isDraggingDmPanel, setIsDraggingDmPanel] = useState(false);
@@ -242,6 +244,10 @@ function GNB() {
   }, [selectedRoomMessages, selectedDividerUnreadCount, myUserId]);
 
   useEffect(() => {
+    setIsHomeGnbVisible(!isHomePage);
+  }, [isHomePage]);
+
+  useEffect(() => {
     setSelectedRoomId(null);
     setMessagesByRoomId({});
     setDmRooms([]);
@@ -421,8 +427,31 @@ function GNB() {
   };
 
   return (
-    <nav className="gnb">
-      <div className="gnb-container">
+    <>
+      {isHomePage && !isHomeGnbVisible && (
+        <div
+          className="gnb-reveal-zone"
+          onMouseEnter={() => setIsHomeGnbVisible(true)}
+          aria-hidden="true"
+        />
+      )}
+
+      <nav
+        className={`gnb ${isHomePage ? 'gnb-home-mode' : ''} ${isHomePage && !isHomeGnbVisible ? 'gnb-home-hidden' : 'gnb-home-visible'}`}
+        onMouseLeave={() => {
+          if (isHomePage) {
+            setIsHomeGnbVisible(false);
+          }
+        }}
+      >
+      <div
+        className="gnb-container"
+        onMouseEnter={() => {
+          if (isHomePage) {
+            setIsHomeGnbVisible(true);
+          }
+        }}
+      >
         <div className="gnb-left">
           <Link to="/" className={`gnb-link ${location.pathname === '/' ? 'active' : ''}`} onClick={(event) => handleAuthRequiredNav(event, '/', false)}>
             <span className="gnb-icon" aria-hidden="true">{'\u{1F3E0}'}</span>
@@ -605,7 +634,8 @@ function GNB() {
         </div>,
         document.body
       )}
-    </nav>
+      </nav>
+    </>
   );
 }
 

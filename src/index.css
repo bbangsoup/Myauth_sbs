@@ -1,116 +1,38 @@
-/* 루트 요소에 대한 전역 CSS 변수 및 기본 스타일 설정 */
 :root {
-  /* 시스템 기본 폰트를 우선으로 하는 폰트 패밀리 설정 (폴백: Avenir, Helvetica, Arial, sans-serif) */
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  /* 텍스트 줄 간격을 1.5배로 설정하여 가독성 향상 */
+  font-family: "Segoe UI", "Noto Sans KR", sans-serif;
   line-height: 1.5;
-  /* 기본 폰트 굵기를 400(normal)으로 설정 */
   font-weight: 400;
-
-  /* 라이트 모드와 다크 모드 모두 지원하도록 색상 스킴 설정 */
-  color-scheme: light dark;
-  /* 기본 텍스트 색상 (흰색에 87% 투명도 적용 - 다크 모드용) */
-  color: rgba(255, 255, 255, 0.87);
-  /* 기본 배경색 (어두운 회색 - 다크 모드용) */
-  background-color: #242424;
-
-  /* 브라우저의 자동 폰트 합성 기능 비활성화 (bold, italic 등) */
+  color: #f4ede6;
+  background: #0f1118;
   font-synthesis: none;
-  /* 텍스트 렌더링을 가독성 우선으로 최적화 */
   text-rendering: optimizeLegibility;
-  /* 웹킷 기반 브라우저(Chrome, Safari)에서 폰트 부드럽게 렌더링 */
   -webkit-font-smoothing: antialiased;
-  /* Firefox에서 macOS/OS X 환경의 폰트 부드럽게 렌더링 */
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* 링크(a 태그)에 대한 스타일 설정 */
-a {
-  /* 링크 텍스트 굵기를 500(medium)으로 설정 */
-  font-weight: 500;
-  /* 링크 색상을 파란 보라색 계열로 설정 */
-  color: #646cff;
-  /* 부모 요소의 텍스트 장식 스타일 상속 (기본 밑줄 제거) */
-  text-decoration: inherit;
-}
-/* 링크에 마우스를 올렸을 때의 스타일 */
-a:hover {
-  /* 호버 시 좀 더 진한 파란 보라색으로 변경 */
-  color: #535bf2;
+* {
+  box-sizing: border-box;
 }
 
-/* body 요소에 대한 스타일 설정 */
-body {
-  /* 기본 여백 제거 */
-  margin: 0;
-  /* flexbox 레이아웃 사용 */
-  display: flex;
-  /* 가로/세로 중앙 정렬 (align-items와 justify-content의 단축 속성) */
-  place-items: center;
-  /* 최소 너비를 320px로 설정 (모바일 최소 지원 크기) */
+html {
   min-width: 320px;
-  /* 최소 높이를 뷰포트 높이의 100%로 설정 */
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
   min-height: 100vh;
+  background: #0f1118;
 }
 
-/* h1 태그에 대한 스타일 설정 */
-h1 {
-  /* 폰트 크기를 3.2em으로 설정 (부모 요소 기준 3.2배) */
-  font-size: 3.2em;
-  /* 줄 간격을 1.1배로 설정 (타이트하게) */
-  line-height: 1.1;
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
-/* button 태그에 대한 기본 스타일 설정 */
-button {
-  /* 버튼 모서리를 8px로 둥글게 처리 */
-  border-radius: 8px;
-  /* 기본 테두리를 투명하게 설정 (1px 두께 유지) */
-  border: 1px solid transparent;
-  /* 버튼 내부 여백 설정 (위아래 0.6em, 좌우 1.2em) */
-  padding: 0.6em 1.2em;
-  /* 폰트 크기를 1em으로 설정 (부모 요소와 동일) */
-  font-size: 1em;
-  /* 폰트 굵기를 500(medium)으로 설정 */
-  font-weight: 500;
-  /* 부모 요소의 폰트 패밀리 상속 */
-  font-family: inherit;
-  /* 버튼 배경색을 매우 어두운 회색으로 설정 */
-  background-color: #1a1a1a;
-  /* 마우스 커서를 포인터(손가락 모양)로 변경 */
-  cursor: pointer;
-  /* 테두리 색상 변화 시 0.25초 동안 부드럽게 전환 */
-  transition: border-color 0.25s;
-}
-/* 버튼에 마우스를 올렸을 때의 스타일 */
-button:hover {
-  /* 호버 시 테두리 색상을 파란 보라색으로 변경 */
-  border-color: #646cff;
-}
-/* 버튼에 포커스가 있을 때 또는 키보드로 포커스했을 때의 스타일 */
-button:focus,
-button:focus-visible {
-  /* 웹킷 브라우저의 기본 포커스 링 스타일로 4px 아웃라인 표시 (접근성 향상) */
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-/* 사용자가 라이트 모드를 선호하는 경우 적용되는 스타일 */
-@media (prefers-color-scheme: light) {
-  /* 라이트 모드용 루트 스타일 재정의 */
-  :root {
-    /* 텍스트 색상을 어두운 네이비 계열로 변경 */
-    color: #213547;
-    /* 배경색을 흰색으로 변경 */
-    background-color: #ffffff;
-  }
-  /* 라이트 모드에서 링크 호버 시 스타일 */
-  a:hover {
-    /* 호버 시 좀 더 밝은 파란 보라색으로 변경 */
-    color: #747bff;
-  }
-  /* 라이트 모드에서 버튼 스타일 */
-  button {
-    /* 버튼 배경색을 매우 밝은 회색으로 변경 */
-    background-color: #f9f9f9;
-  }
+button,
+input,
+textarea {
+  font: inherit;
 }

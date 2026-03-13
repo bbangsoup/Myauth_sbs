@@ -124,7 +124,7 @@ function OAuthCallback() {
         alert('카카오 로그인 성공!');
 
         // 홈 페이지로 이동 (replace: true로 콜백 페이지를 히스토리에서 제거)
-        navigate('/', { replace: true });
+        navigate('/posts', { replace: true });
 
       } catch (parseError) {
         console.error('해시 데이터 파싱 실패:', parseError);
@@ -147,7 +147,7 @@ function OAuthCallback() {
 
           login(user, accessToken);
           alert('카카오 로그인 성공!');
-          navigate('/', { replace: true });
+          navigate('/posts', { replace: true });
         } else {
           throw new Error(response.data.message || '토큰 교환 실패');
         }
