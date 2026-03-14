@@ -8,6 +8,7 @@ import Profile from './pages/Profile';
 import PostList from './pages/PostList';
 import PostCreate from './pages/PostCreate';
 import PostDetail from './pages/PostDetail';
+import Admin from './pages/Admin';
 import { AuthProvider } from './contexts/AuthProvider';
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
           <Route path="/posts" element={<PostList />} />
           <Route path="/posts/create" element={<PostCreate />} />
           <Route path="/posts/:id" element={<PostDetail />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="/notices" element={<PostList mode="notices" />} />
           <Route path="/notices/create" element={<PostCreate postType="notice" />} />
           <Route path="/notices/:id" element={<PostDetail postType="notice" />} />

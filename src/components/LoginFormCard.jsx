@@ -32,6 +32,10 @@ function LoginFormCard({ onSwitchMode, onSuccess }) {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
+  const getRedirectPath = (userData) => (
+    userData?.role === 'ROLE_ADMIN' || userData?.isSuperUser ? '/admin' : '/posts'
+  );
+
   const isValidEmail = (email) => {
     const atIndex = email.indexOf('@');
     const dotIndex = email.lastIndexOf('.');
@@ -87,12 +91,13 @@ function LoginFormCard({ onSwitchMode, onSuccess }) {
       );
 
       if (response.data.success) {
-        login(response.data.data.user, response.data.data.accessToken);
+        const loggedInUser = response.data.data.user;
+        login(loggedInUser, response.data.data.accessToken);
         alert(response.data.message || TEXT.loginSuccess);
         if (onSuccess) {
-          onSuccess();
+          onSuccess(loggedInUser);
         } else {
-          window.location.href = '/posts';
+          window.location.href = getRedirectPath(loggedInUser);
         }
       } else {
         alert(response.data.message || TEXT.loginFailed);

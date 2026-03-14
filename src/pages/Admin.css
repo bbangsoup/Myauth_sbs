@@ -1,0 +1,334 @@
+.admin-page {
+  min-height: 100vh;
+  padding: 104px 20px 120px;
+  background:
+    radial-gradient(circle at top left, rgba(216, 143, 100, 0.16), transparent 24%),
+    radial-gradient(circle at top right, rgba(86, 117, 177, 0.16), transparent 28%),
+    linear-gradient(180deg, #14111b 0%, #0d1219 56%, #0a0f16 100%);
+  color: #f6efe8;
+}
+
+.admin-state-page {
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.admin-hero,
+.admin-section {
+  width: min(1200px, 100%);
+  margin: 0 auto 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  background: rgba(17, 20, 30, 0.76);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(16px);
+}
+
+.admin-hero {
+  padding: 28px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 18px;
+}
+
+.admin-eyebrow {
+  margin: 0 0 8px;
+  color: #ffdcb5;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.admin-hero h1,
+.admin-section h2 {
+  margin: 0;
+}
+
+.admin-hero-copy {
+  margin: 10px 0 0;
+  color: rgba(246, 239, 232, 0.7);
+}
+
+.admin-refresh-button,
+.admin-filter-bar button,
+.admin-user-actions button,
+.admin-pagination button,
+.admin-moderation-form button {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff4ea;
+  cursor: pointer;
+}
+
+.admin-refresh-button {
+  min-width: 120px;
+  min-height: 46px;
+  padding: 0 18px;
+}
+
+.admin-section {
+  padding: 24px;
+}
+
+.admin-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.admin-section-head span,
+.admin-user-meta,
+.admin-empty {
+  color: rgba(246, 239, 232, 0.64);
+}
+
+.admin-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.admin-summary-card {
+  padding: 18px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+}
+
+.admin-summary-card span {
+  display: block;
+  color: rgba(246, 239, 232, 0.66);
+  font-size: 0.84rem;
+}
+
+.admin-summary-card strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 1.6rem;
+}
+
+.admin-main-grid {
+  width: min(1200px, 100%);
+  margin: 0 auto 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.9fr);
+  gap: 20px;
+}
+
+.admin-side-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-filter-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) repeat(2, minmax(0, 0.8fr)) auto;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.admin-filter-bar input,
+.admin-filter-bar select,
+.admin-moderation-form input,
+.admin-moderation-form textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  box-sizing: border-box;
+}
+
+.admin-moderation-form textarea {
+  min-height: 110px;
+  padding: 14px;
+  resize: vertical;
+}
+
+.admin-user-list,
+.admin-audit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-user-card,
+.admin-audit-card {
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-user-main,
+.admin-audit-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-user-main p,
+.admin-audit-card p {
+  margin: 6px 0 0;
+}
+
+.admin-user-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-user-badges span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.76rem;
+}
+
+.admin-user-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 0.84rem;
+}
+
+.admin-user-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.admin-user-actions button,
+.admin-filter-bar button,
+.admin-pagination button,
+.admin-moderation-form button {
+  min-height: 40px;
+  padding: 0 12px;
+}
+
+.admin-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin: 0;
+}
+
+.admin-detail-grid div {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.admin-detail-grid dt {
+  color: rgba(246, 239, 232, 0.58);
+  font-size: 0.78rem;
+}
+
+.admin-detail-grid dd {
+  margin: 6px 0 0;
+}
+
+.admin-moderation-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-segmented {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.admin-segmented button {
+  min-height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.admin-segmented button.active {
+  background: rgba(219, 141, 102, 0.26);
+  border-color: rgba(255, 221, 185, 0.42);
+}
+
+.admin-audit-top span,
+.admin-audit-reason {
+  color: rgba(246, 239, 232, 0.64);
+}
+
+.admin-audit-payloads {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.admin-audit-payloads pre {
+  margin: 0;
+  min-height: 88px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.2);
+  color: rgba(255, 255, 255, 0.86);
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.8rem;
+}
+
+.admin-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+@media (max-width: 1080px) {
+  .admin-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .admin-main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-page {
+    padding: 88px 12px 120px;
+  }
+
+  .admin-hero,
+  .admin-section {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .admin-hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-filter-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-audit-payloads {
+    grid-template-columns: 1fr;
+  }
+}

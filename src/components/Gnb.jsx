@@ -43,6 +43,7 @@ function GNB() {
   const messageScrollRef = useRef(null);
 
   const myUserId = Number(user?.id || 0);
+  const isAdminUser = Boolean(user?.role === 'ROLE_ADMIN' || user?.isSuperUser);
   const authHeaders = useMemo(
     () => (accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     [accessToken]
@@ -482,6 +483,13 @@ function GNB() {
             <span className="gnb-loading">로딩 중...</span>
           ) : isAuthenticated ? (
             <>
+              {isAdminUser && (
+                <Link to="/admin" className="auth-link admin-link">
+                  <span className="gnb-icon" aria-hidden="true">{'\u{1F6E1}'}</span>
+                  <span className="gnb-label">관리자</span>
+                </Link>
+              )}
+
               <button
                 type="button"
                 className="gnb-dm-alert-button"

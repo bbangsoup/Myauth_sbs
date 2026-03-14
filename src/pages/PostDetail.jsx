@@ -490,6 +490,12 @@ function PostDetail({ postType = 'post' }) {
   const authorName = post?.author?.name || post?.userName || '알 수 없음';
   const authorImage = post?.author?.profileImage || post?.userProfileImage || null;
   const totalCommentCount = getPostCommentCount(post);
+  const isAdminUser = Boolean(
+    user?.role === 'ROLE_ADMIN'
+    || user?.role === 'ADMIN'
+    || user?.isSuperUser === true
+    || user?.is_super_user === true
+  );
   const isOwner = user && post && (
     user.id === post.userId ||
     user.id === post.author?.id ||
@@ -502,6 +508,66 @@ function PostDetail({ postType = 'post' }) {
       user.email === comment.author?.email
     )
   );
+
+  const handleAdminDeletePost = async () => {
+    if (!isAdminUser) return;
+
+    const reason = window.prompt('관리자 강제 삭제 사유를 입력하세요.', '') ?? '';
+    if (!window.confirm('이 게시물을 관리자 권한으로 강제 삭제하시겠습니까?')) return;
+
+    try {
+      await axios.delete(
+        `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.adminPosts}/${id}`,
+        {
+          headers: getAuthHeaders(),
+          withCredentials: true,
+          data: {
+            reason: reason.trim() || null,
+          },
+        }
+      );
+
+      alert('게시물이 관리자 권한으로 삭제되었습니다.');
+      navigate(listPath);
+    } catch (err) {
+      console.error('관리자 게시물 강제 삭제 실패:', err);
+      alert(err.response?.data?.message || '관리자 게시물 삭제에 실패했습니다.');
+    }
+  };
+
+  const handleAdminDeleteComment = async (commentId, parentCommentId = null) => {
+    if (!isAdminUser) return;
+
+    const reason = window.prompt('관리자 강제 삭제 사유를 입력하세요.', '') ?? '';
+    if (!window.confirm('이 댓글을 관리자 권한으로 강제 삭제하시겠습니까?')) return;
+
+    setCommentActionLoadingId(commentId);
+    try {
+      await axios.delete(
+        `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.adminComments}/${commentId}`,
+        {
+          headers: getAuthHeaders(),
+          withCredentials: true,
+          data: {
+            reason: reason.trim() || null,
+          },
+        }
+      );
+
+      if (parentCommentId) {
+        await fetchReplies(parentCommentId);
+      } else {
+        await fetchComments();
+      }
+
+      await fetchPost();
+    } catch (err) {
+      console.error('관리자 댓글 강제 삭제 실패:', err);
+      alert(err.response?.data?.message || '관리자 댓글 삭제에 실패했습니다.');
+    } finally {
+      setCommentActionLoadingId(null);
+    }
+  };
 
   useEffect(() => {
     setIsDmConfirmOpen(false);
@@ -650,9 +716,12 @@ function PostDetail({ postType = 'post' }) {
                 </div>
               </div>
 
-              {isOwner && (
+              {(isOwner || isAdminUser) && (
                 <div className="post-detail-actions">
-                  <button onClick={handleDelete} className="delete-button">삭제</button>
+                  {isOwner && <button onClick={handleDelete} className="delete-button">삭제</button>}
+                  {isAdminUser && !isOwner && (
+                    <button onClick={handleAdminDeletePost} className="admin-delete-button">관리자 삭제</button>
+                  )}
                 </div>
               )}
             </div>
@@ -718,6 +787,7 @@ function PostDetail({ postType = 'post' }) {
                 <ul className="post-comment-list">
                   {comments.map((comment) => {
                     const canManage = isCommentOwner(comment) && !comment.isDeleted;
+                    const canAdminManage = isAdminUser && !comment.isDeleted;
                     const isEditing = editingCommentId === comment.id;
                     const isBusy = commentActionLoadingId === comment.id;
                     const repliesVisible = Boolean(isRepliesVisibleByCommentId[comment.id]);
@@ -741,10 +811,19 @@ function PostDetail({ postType = 'post' }) {
                               <span className="post-comment-date">{formatDate(comment.createdAt)}</span>
                             </div>
                           </div>
-                          {canManage && !isEditing && (
+                          {(canManage || canAdminManage) && !isEditing && (
                             <div className="post-comment-actions">
-                              <button type="button" onClick={() => startEditComment(comment)} disabled={isBusy}>수정</button>
-                              <button type="button" onClick={() => handleDeleteComment(comment.id)} disabled={isBusy}>삭제</button>
+                              {canManage && (
+                                <>
+                                  <button type="button" onClick={() => startEditComment(comment)} disabled={isBusy}>수정</button>
+                                  <button type="button" onClick={() => handleDeleteComment(comment.id)} disabled={isBusy}>삭제</button>
+                                </>
+                              )}
+                              {canAdminManage && !canManage && (
+                                <button type="button" onClick={() => handleAdminDeleteComment(comment.id)} disabled={isBusy} className="admin-delete-button">
+                                  관리자 삭제
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>
@@ -797,6 +876,7 @@ function PostDetail({ postType = 'post' }) {
                                   <ul className="post-reply-list">
                                     {replies.map((reply) => {
                                       const canManageReply = isCommentOwner(reply) && !reply.isDeleted;
+                                      const canAdminManageReply = isAdminUser && !reply.isDeleted;
                                       const isEditingReply = editingCommentId === reply.id;
                                       const isBusyReply = commentActionLoadingId === reply.id;
 
@@ -814,10 +894,24 @@ function PostDetail({ postType = 'post' }) {
                                                 <span className="post-comment-date">{formatDate(reply.createdAt)}</span>
                                               </div>
                                             </div>
-                                            {canManageReply && !isEditingReply && (
+                                            {(canManageReply || canAdminManageReply) && !isEditingReply && (
                                               <div className="post-comment-actions">
-                                                <button type="button" onClick={() => startEditComment(reply)} disabled={isBusyReply}>수정</button>
-                                                <button type="button" onClick={() => handleDeleteComment(reply.id, comment.id)} disabled={isBusyReply}>삭제</button>
+                                                {canManageReply && (
+                                                  <>
+                                                    <button type="button" onClick={() => startEditComment(reply)} disabled={isBusyReply}>수정</button>
+                                                    <button type="button" onClick={() => handleDeleteComment(reply.id, comment.id)} disabled={isBusyReply}>삭제</button>
+                                                  </>
+                                                )}
+                                                {canAdminManageReply && !canManageReply && (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => handleAdminDeleteComment(reply.id, comment.id)}
+                                                    disabled={isBusyReply}
+                                                    className="admin-delete-button"
+                                                  >
+                                                    관리자 삭제
+                                                  </button>
+                                                )}
                                               </div>
                                             )}
                                           </div>

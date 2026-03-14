@@ -108,8 +108,13 @@ function PostList({ mode = 'posts' }) {
               )}
             </div>
           ) : (
-            posts.map(post => (
-              <PostCard key={post.id} post={post} detailPathPrefix={detailPathPrefix} />
+            posts.map((post, index) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                detailPathPrefix={detailPathPrefix}
+                listIndex={index}
+              />
             ))
           )}
         </div>

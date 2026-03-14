@@ -1,9 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import GNB from '../components/Gnb';
 import LoginFormCard from '../components/LoginFormCard';
 import SignupFormCard from '../components/SignupFormCard';
-import '../components/AuthModal.css';
+import axiosIcon from '../assets/stack-icons/axios.png';
+import dockerIcon from '../assets/stack-icons/docker.webp';
+import gitIcon from '../assets/stack-icons/git.svg';
+import githubIcon from '../assets/stack-icons/github.png';
+import javaIcon from '../assets/stack-icons/java.svg';
+import mysqlIcon from '../assets/stack-icons/mysql.png';
+import reactIcon from '../assets/stack-icons/react.svg';
+import springBootIcon from '../assets/stack-icons/spring_boot.png';
 import './Home.css';
 
 const LABELS = {
@@ -25,150 +32,182 @@ const LABELS = {
 };
 
 const TECH_STACK = [
-  'React',
-  'Vite',
-  'React Router',
-  'Axios',
-  'Java',
-  'Spring Boot',
-  'MySQL',
-  'Docker',
-  'Git',
-  'GitHub',
+  { name: 'React', icon: reactIcon, iconClassName: 'is-react' },
+  { name: 'Vite', badge: 'Vi', accentClassName: 'is-vite' },
+  { name: 'React Router', badge: 'RR', accentClassName: 'is-router' },
+  { name: 'Axios', icon: axiosIcon, iconClassName: 'is-axios' },
+  { name: 'Java', icon: javaIcon, iconClassName: 'is-java' },
+  { name: 'Spring Boot', icon: springBootIcon, iconClassName: 'is-spring' },
+  { name: 'MySQL', icon: mysqlIcon, iconClassName: 'is-mysql' },
+  { name: 'Docker', icon: dockerIcon, iconClassName: 'is-docker' },
+  { name: 'Git', icon: gitIcon, iconClassName: 'is-git' },
+  { name: 'GitHub', icon: githubIcon, iconClassName: 'is-github' },
 ];
 
 function Home() {
-  const [authModal, setAuthModal] = useState(null);
+  const [activeAuth, setActiveAuth] = useState(null);
+  const [isStackOpen, setIsStackOpen] = useState(false);
+  const toggleStack = () => setIsStackOpen((prev) => !prev);
+  const closeStack = () => setIsStackOpen(false);
+  const closeAuth = () => setActiveAuth(null);
 
-  useEffect(() => {
-    if (!authModal) return undefined;
-
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [authModal]);
-
-  const closeModal = () => setAuthModal(null);
+  const isLogin = activeAuth === 'login';
+  const isSignup = activeAuth === 'signup';
 
   return (
     <>
       <GNB />
       <main className="portfolio-home">
+        {isStackOpen && <div className="portfolio-stack-dismiss" onClick={closeStack} aria-hidden="true" />}
         <section className="portfolio-panel portfolio-panel-top">
           <div className="portfolio-panel-glow" />
-          <div className="portfolio-name-card">
-            <div className="portfolio-name-copy">
-              <h1>KIM HA YUL</h1>
-            </div>
-
-            <div className="portfolio-stack-reveal">
-              <div className="portfolio-stack-copy">
-                <strong>{LABELS.stackTitle}</strong>
-                <p>{LABELS.stackDescription}</p>
+          <div
+            className={`portfolio-name-card ${isStackOpen ? 'is-open' : ''}`}
+            onClick={toggleStack}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleStack();
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-expanded={isStackOpen}
+            aria-controls="portfolio-stack-panel"
+          >
+            <span className="portfolio-name-card-inner">
+              <div className="portfolio-name-copy">
+                <h1>KIM HA YUL</h1>
               </div>
-              <div className="portfolio-stack-grid">
-                {TECH_STACK.map((stack) => (
-                  <span key={stack}>{stack}</span>
-                ))}
-              </div>
-            </div>
+            </span>
           </div>
         </section>
 
-        <section className="portfolio-split-grid">
-          <button
-            type="button"
-            className="portfolio-panel portfolio-panel-bottom portfolio-panel-login"
-            onClick={() => setAuthModal('login')}
-          >
-            <div className="portfolio-panel-content">
-              <h2>{LABELS.login}</h2>
-              <p>{LABELS.loginDescription}</p>
-              <span className="portfolio-panel-cta">{LABELS.loginCta}</span>
-            </div>
-          </button>
-
-          <button
-            type="button"
-            className="portfolio-panel portfolio-panel-bottom portfolio-panel-signup"
-            onClick={() => setAuthModal('signup')}
-          >
-            <div className="portfolio-panel-content">
-              <h2>{LABELS.signup}</h2>
-              <p>{LABELS.signupDescription}</p>
-              <span className="portfolio-panel-cta">{LABELS.signupCta}</span>
-            </div>
-          </button>
+        <section
+          id="portfolio-stack-panel"
+          className={`portfolio-stack-panel ${isStackOpen ? 'is-open' : ''}`}
+          aria-hidden={!isStackOpen}
+          onClick={closeStack}
+        >
+          <div className="portfolio-stack-copy">
+            <strong>{LABELS.stackTitle}</strong>
+            <p>{LABELS.stackDescription}</p>
+          </div>
+          <div className="portfolio-stack-grid">
+            {TECH_STACK.map((stack) => (
+              <div key={stack.name} className="portfolio-stack-item">
+                <span className={`portfolio-stack-icon-shell ${stack.accentClassName ?? ''}`}>
+                  {stack.icon ? (
+                    <img
+                      src={stack.icon}
+                      alt=""
+                      aria-hidden="true"
+                      className={`portfolio-stack-icon ${stack.iconClassName ?? ''}`}
+                    />
+                  ) : (
+                    <span className="portfolio-stack-badge">{stack.badge}</span>
+                  )}
+                </span>
+                <span className="portfolio-stack-label">{stack.name}</span>
+              </div>
+            ))}
+          </div>
         </section>
-      </main>
 
-      {authModal && (
-        <div className="auth-modal-overlay" role="presentation" onClick={closeModal}>
-          <div
-            className={`auth-modal-shell ${authModal === 'signup' ? 'signup' : ''}`}
-            role="dialog"
-            aria-modal="true"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button type="button" className="auth-modal-close" onClick={closeModal} aria-label={LABELS.close}>
-              &times;
+        {activeAuth ? (
+          <section className="portfolio-auth-stage" onClick={closeAuth} role="presentation">
+            <div
+              className={`portfolio-auth-shell ${isSignup ? 'signup' : ''}`}
+              onClick={(e) => e.stopPropagation()}
+              role="presentation"
+            >
+              <button type="button" className="portfolio-auth-close" onClick={closeAuth} aria-label={LABELS.close}>
+                &times;
+              </button>
+
+              {isLogin ? (
+                <>
+                  <div className="portfolio-auth-form">
+                  <LoginFormCard
+                    onSwitchMode={() => setActiveAuth('signup')}
+                    onSuccess={(loggedInUser) => {
+                      closeAuth();
+                      window.location.href = (
+                        loggedInUser?.role === 'ROLE_ADMIN' || loggedInUser?.isSuperUser
+                          ? '/admin'
+                          : '/posts'
+                      );
+                    }}
+                  />
+                  </div>
+                  <div className="portfolio-auth-visual">
+                    <div className="portfolio-auth-visual-inner">
+                      <span className="portfolio-auth-eyebrow">{LABELS.loginEyebrow}</span>
+                      <h2>{LABELS.loginModalTitle}</h2>
+                      <p>{LABELS.loginModalDescription}</p>
+                      <div className="portfolio-auth-stack">
+                        <span>{'\uAC8C\uC2DC\uAE00'}</span>
+                        <span>{'\uC54C\uB9BC\uAE00'}</span>
+                        <span>DM</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="portfolio-auth-visual">
+                    <div className="portfolio-auth-visual-inner">
+                      <span className="portfolio-auth-eyebrow">{LABELS.signupEyebrow}</span>
+                      <h2>{LABELS.signupModalTitle}</h2>
+                      <p>{LABELS.signupModalDescription}</p>
+                      <div className="portfolio-auth-stack">
+                        <span>{'\uD504\uB85C\uD544'}</span>
+                        <span>{'\uCEE4\uBBA4\uB2C8\uD2F0'}</span>
+                        <span>{'\uD3EC\uD2B8\uD3F4\uB9AC\uC624'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="portfolio-auth-form">
+                    <SignupFormCard
+                      onSwitchMode={() => setActiveAuth('login')}
+                      onSuccess={() => {
+                        closeAuth();
+                        window.location.href = '/';
+                      }}
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          </section>
+        ) : (
+          <section className="portfolio-split-grid">
+            <button
+              type="button"
+              className="portfolio-panel portfolio-panel-bottom portfolio-panel-login"
+              onClick={() => setActiveAuth('login')}
+            >
+              <div className="portfolio-panel-content">
+                <h2>{LABELS.login}</h2>
+                <p>{LABELS.loginDescription}</p>
+                <span className="portfolio-panel-cta">{LABELS.loginCta}</span>
+              </div>
             </button>
 
-            {authModal === 'login' ? (
-              <>
-                <div className="auth-modal-form">
-                  <LoginFormCard
-                    onSwitchMode={() => setAuthModal('signup')}
-                    onSuccess={() => {
-                      closeModal();
-                      window.location.href = '/posts';
-                    }}
-                  />
-                </div>
-                <div className="auth-modal-visual">
-                  <div className="auth-modal-visual-inner">
-                    <span className="auth-modal-eyebrow">{LABELS.loginEyebrow}</span>
-                    <h2>{LABELS.loginModalTitle}</h2>
-                    <p>{LABELS.loginModalDescription}</p>
-                    <div className="auth-modal-stack">
-                      <span>{'\uAC8C\uC2DC\uAE00'}</span>
-                      <span>{'\uC54C\uB9BC\uAE00'}</span>
-                      <span>DM</span>
-                    </div>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="auth-modal-visual">
-                  <div className="auth-modal-visual-inner">
-                    <span className="auth-modal-eyebrow">{LABELS.signupEyebrow}</span>
-                    <h2>{LABELS.signupModalTitle}</h2>
-                    <p>{LABELS.signupModalDescription}</p>
-                    <div className="auth-modal-stack">
-                      <span>{'\uD504\uB85C\uD544'}</span>
-                      <span>{'\uCEE4\uBBA4\uB2C8\uD2F0'}</span>
-                      <span>{'\uD3EC\uD2B8\uD3F4\uB9AC\uC624'}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="auth-modal-form">
-                  <SignupFormCard
-                    onSwitchMode={() => setAuthModal('login')}
-                    onSuccess={() => {
-                      closeModal();
-                      window.location.href = '/';
-                    }}
-                  />
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+            <button
+              type="button"
+              className="portfolio-panel portfolio-panel-bottom portfolio-panel-signup"
+              onClick={() => setActiveAuth('signup')}
+            >
+              <div className="portfolio-panel-content">
+                <h2>{LABELS.signup}</h2>
+                <p>{LABELS.signupDescription}</p>
+                <span className="portfolio-panel-cta">{LABELS.signupCta}</span>
+              </div>
+            </button>
+          </section>
+        )}
+      </main>
     </>
   );
 }

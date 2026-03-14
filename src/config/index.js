@@ -42,6 +42,11 @@ export const API_CONFIG = {
     comments: '/comments',
     dmRooms: '/dm/rooms',
     dmUnreadCount: '/dm/unread-count',
+    adminDashboardSummary: '/admin/dashboard/summary',
+    adminUsers: '/admin/users',
+    adminAuditLogs: '/admin/audit-logs',
+    adminPosts: '/admin/posts',
+    adminComments: '/admin/comments',
 
     // OAuth (카카오) - /api/auth 경로를 통해 백엔드로 프록시
     kakaoLogin: '/auth/kakao/login',
