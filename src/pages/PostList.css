@@ -38,7 +38,7 @@
 }
 
 .post-list-type-switch {
-  display: inline-flex;
+  display: none;
   align-items: center;
   gap: 0.35rem;
   padding: 0.2rem;

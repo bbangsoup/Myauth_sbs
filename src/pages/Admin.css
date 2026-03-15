@@ -17,7 +17,7 @@
 .admin-nav-tabs {
   width: min(1200px, 100%);
   margin: 0 auto 14px;
-  display: inline-flex;
+  display: none;
   gap: 0.5rem;
 }
 

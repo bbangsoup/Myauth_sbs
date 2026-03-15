@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import GNB from '../components/Gnb';
 import Footer from '../components/Footer';
@@ -10,12 +10,9 @@ import { isAdminUser } from '../utils/auth';
 import './PostList.css';
 
 function PostList({ mode = 'posts' }) {
-  const location = useLocation();
-  const navigate = useNavigate();
   const { user, isAuthenticated, accessToken } = useAuth();
   const isNoticeMode = mode === 'notices';
   const canWriteNotice = isAdminUser(user);
-  const canAccessAdmin = isAdminUser(user);
   const canCreate = isNoticeMode ? canWriteNotice : isAuthenticated;
   const createPath = isNoticeMode ? '/notices/create' : '/posts/create';
   const detailPathPrefix = isNoticeMode ? '/notices' : '/posts';
@@ -26,14 +23,7 @@ function PostList({ mode = 'posts' }) {
   const { posts, isLoading, error, fetchPosts } = usePosts(accessToken, {
     myPostsOnly: !isNoticeMode && activeTab === 'mine',
     noticesOnly: isNoticeMode,
-    enabled: !canAccessAdmin || isNoticeMode,
   });
-
-  useEffect(() => {
-    if (!isNoticeMode && canAccessAdmin) {
-      navigate('/admin/dashboard', { replace: true });
-    }
-  }, [isNoticeMode, canAccessAdmin, navigate]);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -46,19 +36,6 @@ function PostList({ mode = 'posts' }) {
         <div className="post-list-header">
           <div className="post-list-title-wrap">
             <h1>{pageTitle}</h1>
-            <div className="post-list-type-switch">
-              <Link to="/posts" className={`post-list-type-link ${!isNoticeMode ? 'active' : ''}`}>
-                게시글
-              </Link>
-              {canAccessAdmin && (
-                <Link
-                  to="/admin/dashboard"
-                  className={`post-list-type-link ${location.pathname.startsWith('/admin') ? 'active' : ''}`}
-                >
-                  관리자
-                </Link>
-              )}
-            </div>
           </div>
           {canCreate && (
             <Link to={createPath} className="post-create-button">
