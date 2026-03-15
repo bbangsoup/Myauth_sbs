@@ -36,12 +36,19 @@ const normalizePostStats = (post) => {
   };
 };
 
-export function usePosts(accessToken, { myPostsOnly = false, noticesOnly = false } = {}) {
+export function usePosts(accessToken, { myPostsOnly = false, noticesOnly = false, enabled = true } = {}) {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchPosts = useCallback(async () => {
+    if (!enabled) {
+      setPosts([]);
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -77,7 +84,7 @@ export function usePosts(accessToken, { myPostsOnly = false, noticesOnly = false
     } finally {
       setIsLoading(false);
     }
-  }, [accessToken, myPostsOnly, noticesOnly]);
+  }, [accessToken, myPostsOnly, noticesOnly, enabled]);
 
   useEffect(() => {
     fetchPosts();

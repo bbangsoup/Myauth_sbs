@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 import { useAuth } from '../hooks/useAuth';
+import { isAdminUser } from '../utils/auth';
 import './AuthCard.css';
 
 const TEXT = {
@@ -32,9 +33,7 @@ function LoginFormCard({ onSwitchMode, onSuccess }) {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const getRedirectPath = (userData) => (
-    userData?.role === 'ROLE_ADMIN' || userData?.isSuperUser ? '/admin' : '/posts'
-  );
+  const getRedirectPath = (userData) => (isAdminUser(userData) ? '/admin/dashboard' : '/posts');
 
   const isValidEmail = (email) => {
     const atIndex = email.indexOf('@');

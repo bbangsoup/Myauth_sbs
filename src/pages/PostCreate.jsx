@@ -36,7 +36,6 @@ function PostCreate({ postType = 'post' }) {
   const {
     content,
     visibility,
-    selectedImages,
     previewImages,
     errors,
     isLoading,
@@ -60,7 +59,7 @@ function PostCreate({ postType = 'post' }) {
         alert(successMessage);
         navigate(listPath);
       }
-    } catch (err) {
+    } catch {
       alert(failMessage);
     }
   };

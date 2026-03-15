@@ -42,7 +42,7 @@ export const API_CONFIG = {
     comments: '/comments',
     dmRooms: '/dm/rooms',
     dmUnreadCount: '/dm/unread-count',
-    adminDashboardSummary: '/admin/dashboard/summary',
+    adminDashboardSummary: '/admin/dashboard',
     adminUsers: '/admin/users',
     adminAuditLogs: '/admin/audit-logs',
     adminPosts: '/admin/posts',

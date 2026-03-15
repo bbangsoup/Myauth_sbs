@@ -1,4 +1,4 @@
-﻿import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import './App.css';
 import Home from './pages/Home';
 import Signup from './pages/Signup';
@@ -24,7 +24,8 @@ function App() {
           <Route path="/posts" element={<PostList />} />
           <Route path="/posts/create" element={<PostCreate />} />
           <Route path="/posts/:id" element={<PostDetail />} />
-          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/admin/dashboard" element={<Admin />} />
           <Route path="/notices" element={<PostList mode="notices" />} />
           <Route path="/notices/create" element={<PostCreate postType="notice" />} />
           <Route path="/notices/:id" element={<PostDetail postType="notice" />} />

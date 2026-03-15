@@ -1,5 +1,5 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 
@@ -14,11 +14,11 @@ import {
   setShownDmReadBoundary,
   setLastReadMessageId,
 } from '../utils/dmStorage';
+import { isAdminUser as checkIsAdminUser } from '../utils/auth';
 import './Gnb.css';
 import defaultUserImage from '../assets/default_user.png';
 
 function GNB() {
-  const navigate = useNavigate();
   const location = useLocation();
   const { user, isAuthenticated, isLoading, logout, accessToken } = useAuth();
   const isHomePage = location.pathname === '/';
@@ -43,7 +43,7 @@ function GNB() {
   const messageScrollRef = useRef(null);
 
   const myUserId = Number(user?.id || 0);
-  const isAdminUser = Boolean(user?.role === 'ROLE_ADMIN' || user?.isSuperUser);
+  const isAdminUser = checkIsAdminUser(user);
   const authHeaders = useMemo(
     () => (accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     [accessToken]
@@ -217,7 +217,10 @@ function GNB() {
   }, [isAuthenticated, myUserId, authHeaders, normalizeRooms, selectedRoomId, refreshUnreadCounts, fetchRoomMessages, isDmPanelOpen]);
 
   const selectedRoom = dmRooms.find((room) => room.roomId === selectedRoomId) || null;
-  const selectedRoomMessages = selectedRoomId ? (messagesByRoomId[selectedRoomId] || []) : [];
+  const selectedRoomMessages = useMemo(
+    () => (selectedRoomId ? (messagesByRoomId[selectedRoomId] || []) : []),
+    [selectedRoomId, messagesByRoomId]
+  );
   const selectedRoomUnreadCount = Number(selectedRoom?.unreadCount || 0);
   const selectedDividerUnreadCount = Number(
     (selectedRoomId && dividerUnreadCountByRoomId[selectedRoomId]) || 0
@@ -468,14 +471,16 @@ function GNB() {
             <span className="gnb-label">게시글</span>
           </Link>
 
-          <Link
-            to="/notices"
-            className={`gnb-link ${location.pathname.startsWith('/notices') ? 'active' : ''}`}
-            onClick={(event) => handleAuthRequiredNav(event, '/notices', true)}
-          >
-            <span className="gnb-icon" aria-hidden="true">{'\u{1F514}'}</span>
-            <span className="gnb-label">알림글</span>
-          </Link>
+          {isAdminUser && (
+            <Link
+              to="/admin/dashboard"
+              className={`gnb-link ${location.pathname.startsWith('/admin') ? 'active' : ''}`}
+              onClick={(event) => handleAuthRequiredNav(event, '/admin/dashboard', true)}
+            >
+              <span className="gnb-icon" aria-hidden="true">{'\u{1F6E1}'}</span>
+              <span className="gnb-label">관리자</span>
+            </Link>
+          )}
         </div>
 
         <div className="gnb-right">
@@ -483,13 +488,6 @@ function GNB() {
             <span className="gnb-loading">로딩 중...</span>
           ) : isAuthenticated ? (
             <>
-              {isAdminUser && (
-                <Link to="/admin" className="auth-link admin-link">
-                  <span className="gnb-icon" aria-hidden="true">{'\u{1F6E1}'}</span>
-                  <span className="gnb-label">관리자</span>
-                </Link>
-              )}
-
               <button
                 type="button"
                 className="gnb-dm-alert-button"

@@ -14,6 +14,33 @@
   text-align: center;
 }
 
+.admin-nav-tabs {
+  width: min(1200px, 100%);
+  margin: 0 auto 14px;
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.admin-nav-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.admin-nav-tab.active {
+  color: #fff;
+  background: rgba(102, 126, 234, 0.35);
+  border-color: rgba(102, 126, 234, 0.55);
+}
+
 .admin-hero,
 .admin-section {
   width: min(1200px, 100%);
@@ -87,6 +114,15 @@
   color: rgba(246, 239, 232, 0.64);
 }
 
+.admin-section-error {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(203, 87, 87, 0.14);
+  border: 1px solid rgba(255, 133, 133, 0.26);
+  color: #ffd1d1;
+}
+
 .admin-summary-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -109,6 +145,274 @@
   display: block;
   margin-top: 10px;
   font-size: 1.6rem;
+}
+
+.admin-range-tabs {
+  display: inline-flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.admin-range-tabs button {
+  min-width: 64px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(246, 239, 232, 0.74);
+  cursor: pointer;
+}
+
+.admin-range-tabs button.active {
+  color: #fff;
+  background: rgba(102, 126, 234, 0.32);
+  border-color: rgba(149, 166, 255, 0.5);
+}
+
+.admin-line-chart-head {
+  align-items: flex-start;
+}
+
+.admin-line-chart-card {
+  padding: 18px;
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03)),
+    rgba(11, 14, 22, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-line-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.admin-line-chart-year {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(246, 239, 232, 0.76);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.admin-line-chart-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(246, 239, 232, 0.82);
+  font-size: 0.8rem;
+}
+
+.admin-line-chart-legend-item::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #7dc4ff;
+}
+
+.admin-line-chart-legend-users::before {
+  background: #82d0ff;
+}
+
+.admin-line-chart-legend-posts::before {
+  background: #ff9c67;
+}
+
+.admin-line-chart-legend-comments::before {
+  background: #5ed6a5;
+}
+
+.admin-line-chart-svg {
+  width: 100%;
+  height: 280px;
+  overflow: visible;
+}
+
+.admin-line-chart-grid {
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 1;
+}
+
+.admin-line-chart-path {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.admin-line-chart-path-users {
+  stroke: #82d0ff;
+}
+
+.admin-line-chart-path-posts {
+  stroke: #ff9c67;
+}
+
+.admin-line-chart-path-comments {
+  stroke: #5ed6a5;
+}
+
+.admin-line-chart-point {
+  stroke-width: 2;
+  fill: #10141d;
+}
+
+.admin-line-chart-point-users {
+  stroke: #82d0ff;
+}
+
+.admin-line-chart-point-posts {
+  stroke: #ff9c67;
+}
+
+.admin-line-chart-point-comments {
+  stroke: #5ed6a5;
+}
+
+.admin-line-chart-label {
+  fill: rgba(246, 239, 232, 0.6);
+  font-size: 11px;
+}
+
+.admin-line-chart-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.admin-line-chart-summary-card {
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-line-chart-summary-card span,
+.admin-line-chart-summary-card p {
+  color: rgba(246, 239, 232, 0.68);
+}
+
+.admin-line-chart-summary-card strong {
+  display: block;
+  margin: 8px 0 4px;
+  font-size: 1.35rem;
+}
+
+.admin-line-chart-summary-card p {
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+.admin-line-chart-empty {
+  display: grid;
+  gap: 8px;
+  min-height: 220px;
+  place-content: center;
+  text-align: center;
+  color: rgba(246, 239, 232, 0.72);
+}
+
+.admin-line-chart-empty strong {
+  color: #fff;
+}
+
+.admin-line-chart-empty p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.admin-activity-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.admin-activity-grid-single {
+  grid-template-columns: 1fr;
+}
+
+.admin-progress-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.admin-progress-card {
+  padding: 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-progress-ring {
+  --progress: 0%;
+  width: 132px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, rgba(17, 20, 30, 0.94) 56%, transparent 57%),
+    conic-gradient(from -90deg, #7dc4ff var(--progress), rgba(255, 255, 255, 0.1) 0);
+  display: grid;
+  place-items: center;
+}
+
+.admin-progress-card-users .admin-progress-ring {
+  background:
+    radial-gradient(circle at center, rgba(17, 20, 30, 0.94) 56%, transparent 57%),
+    conic-gradient(from -90deg, #82d0ff var(--progress), rgba(255, 255, 255, 0.1) 0);
+}
+
+.admin-progress-card-posts .admin-progress-ring {
+  background:
+    radial-gradient(circle at center, rgba(17, 20, 30, 0.94) 56%, transparent 57%),
+    conic-gradient(from -90deg, #ff9c67 var(--progress), rgba(255, 255, 255, 0.1) 0);
+}
+
+.admin-progress-card-comments .admin-progress-ring {
+  background:
+    radial-gradient(circle at center, rgba(17, 20, 30, 0.94) 56%, transparent 57%),
+    conic-gradient(from -90deg, #5ed6a5 var(--progress), rgba(255, 255, 255, 0.1) 0);
+}
+
+.admin-progress-ring-inner {
+  width: 74%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.admin-progress-ring-inner strong {
+  font-size: 1.35rem;
+}
+
+.admin-progress-ring-inner span {
+  display: block;
+  margin-top: 4px;
+  color: rgba(246, 239, 232, 0.7);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.admin-progress-detail {
+  margin: 0;
+  color: rgba(246, 239, 232, 0.66);
+  font-size: 0.84rem;
 }
 
 .admin-main-grid {
@@ -299,6 +603,14 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .admin-line-chart-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-progress-grid {
+    grid-template-columns: 1fr;
+  }
+
   .admin-main-grid {
     grid-template-columns: 1fr;
   }
@@ -320,8 +632,27 @@
     align-items: stretch;
   }
 
+  .admin-section-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .admin-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-range-tabs {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .admin-line-chart-card {
+    padding: 16px;
+  }
+
+  .admin-line-chart-svg {
+    height: 220px;
   }
 
   .admin-filter-bar {

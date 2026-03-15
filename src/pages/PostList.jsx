@@ -1,42 +1,40 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import GNB from '../components/Gnb';
 import Footer from '../components/Footer';
 import PostCard from '../components/PostCard';
 import { useAuth } from '../hooks/useAuth';
 import { usePosts } from '../hooks/usePosts';
+import { isAdminUser } from '../utils/auth';
 import './PostList.css';
 
-/**
- * PostList 컴포넌트
- *
- * 게시글 피드 페이지입니다.
- * - 전체 공개 게시글 목록 조회
- * - 내 게시글 탭 전환
- * - 로그인한 사용자만 게시글 작성 가능
- */
 function PostList({ mode = 'posts' }) {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { user, isAuthenticated, accessToken } = useAuth();
   const isNoticeMode = mode === 'notices';
-  const canWriteNotice = Boolean(
-    user && (user.role === 'ROLE_ADMIN' || user.isSuperUser === true || user.is_super_user === true)
-  );
+  const canWriteNotice = isAdminUser(user);
+  const canAccessAdmin = isAdminUser(user);
   const canCreate = isNoticeMode ? canWriteNotice : isAuthenticated;
   const createPath = isNoticeMode ? '/notices/create' : '/posts/create';
   const detailPathPrefix = isNoticeMode ? '/notices' : '/posts';
   const pageTitle = isNoticeMode ? '알림글' : '게시글';
 
-  // 탭 상태: 'all' (전체 피드) 또는 'mine' (내 게시글)
   const [activeTab, setActiveTab] = useState('all');
 
-  // 게시글 목록 조회 (탭에 따라 다른 API 호출)
   const { posts, isLoading, error, fetchPosts } = usePosts(accessToken, {
     myPostsOnly: !isNoticeMode && activeTab === 'mine',
     noticesOnly: isNoticeMode,
+    enabled: !canAccessAdmin || isNoticeMode,
   });
 
-  // 탭 변경 핸들러
+  useEffect(() => {
+    if (!isNoticeMode && canAccessAdmin) {
+      navigate('/admin/dashboard', { replace: true });
+    }
+  }, [isNoticeMode, canAccessAdmin, navigate]);
+
   const handleTabChange = (tab) => {
     setActiveTab(tab);
   };
@@ -45,7 +43,6 @@ function PostList({ mode = 'posts' }) {
     <>
       <GNB />
       <div className="post-list-container">
-        {/* 헤더: 제목 + 작성 버튼 */}
         <div className="post-list-header">
           <div className="post-list-title-wrap">
             <h1>{pageTitle}</h1>
@@ -53,9 +50,14 @@ function PostList({ mode = 'posts' }) {
               <Link to="/posts" className={`post-list-type-link ${!isNoticeMode ? 'active' : ''}`}>
                 게시글
               </Link>
-              <Link to="/notices" className={`post-list-type-link ${isNoticeMode ? 'active' : ''}`}>
-                알림글
-              </Link>
+              {canAccessAdmin && (
+                <Link
+                  to="/admin/dashboard"
+                  className={`post-list-type-link ${location.pathname.startsWith('/admin') ? 'active' : ''}`}
+                >
+                  관리자
+                </Link>
+              )}
             </div>
           </div>
           {canCreate && (
@@ -65,7 +67,6 @@ function PostList({ mode = 'posts' }) {
           )}
         </div>
 
-        {/* 탭 메뉴 */}
         {!isNoticeMode && isAuthenticated && (
           <div className="post-tabs">
             <button
@@ -83,7 +84,6 @@ function PostList({ mode = 'posts' }) {
           </div>
         )}
 
-        {/* 게시글 목록 */}
         <div className="post-list">
           {isLoading ? (
             <div className="post-list-loading">

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import AuthContext from './AuthContext';
+import { normalizeAuthUser } from '../utils/auth';
 
 /**
  * AuthProvider 컴포넌트
@@ -88,8 +89,10 @@ export function AuthProvider({ children }) {
           // 백엔드가 user 정보를 반환하지 않으면 localStorage에서 가져옴
           if (!userData) {
             console.log('백엔드가 user 정보를 반환하지 않음 - localStorage에서 복원');
-            userData = JSON.parse(savedUser);
+            userData = normalizeAuthUser(JSON.parse(savedUser));
           }
+
+          userData = normalizeAuthUser(userData);
 
           console.log('상태 업데이트 전 - user:', user);
           console.log('상태 업데이트 전 - accessToken:', accessToken);
@@ -140,13 +143,15 @@ export function AuthProvider({ children }) {
    */
   const login = (userData, token) => {
     // 상태 업데이트
-    setUser(userData);
+    const normalizedUser = normalizeAuthUser(userData);
+
+    setUser(normalizedUser);
     setAccessToken(token);
 
     // localStorage에는 사용자 정보만 저장 (UX 개선용)
     // accessToken은 보안을 위해 메모리(state)에만 저장
     // 페이지 새로고침 시에는 /refresh API를 통해 새 토큰 발급
-    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('user', JSON.stringify(normalizedUser));
   };
 
   /**
@@ -240,7 +245,7 @@ export function AuthProvider({ children }) {
         // 토큰 갱신 성공: 사용자 정보와 새 accessToken 저장
         // response.data.data 구조: { accessToken, user: { id, email, name, role } }
         const newAccessToken = response.data.data.accessToken;
-        const userData = response.data.data.user;
+        const userData = normalizeAuthUser(response.data.data.user);
 
         // 상태 업데이트
         setUser(userData);

@@ -11,6 +11,7 @@ import javaIcon from '../assets/stack-icons/java.svg';
 import mysqlIcon from '../assets/stack-icons/mysql.png';
 import reactIcon from '../assets/stack-icons/react.svg';
 import springBootIcon from '../assets/stack-icons/spring_boot.png';
+import { isAdminUser } from '../utils/auth';
 import './Home.css';
 
 const LABELS = {
@@ -132,11 +133,7 @@ function Home() {
                     onSwitchMode={() => setActiveAuth('signup')}
                     onSuccess={(loggedInUser) => {
                       closeAuth();
-                      window.location.href = (
-                        loggedInUser?.role === 'ROLE_ADMIN' || loggedInUser?.isSuperUser
-                          ? '/admin'
-                          : '/posts'
-                      );
+                      window.location.href = isAdminUser(loggedInUser) ? '/admin/dashboard' : '/posts';
                     }}
                   />
                   </div>
